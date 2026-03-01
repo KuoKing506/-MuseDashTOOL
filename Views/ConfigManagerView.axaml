@@ -1,0 +1,412 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MdModManager.ViewModels"
+             xmlns:models="using:MdModManager.Models"
+             xmlns:helpers="using:MdModManager.Helpers"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="MdModManager.Views.ConfigManagerView"
+             x:DataType="vm:ConfigManagerViewModel"
+             DragDrop.AllowDrop="True">
+
+    <UserControl.Resources>
+        <helpers:BoolToAngleConverter x:Key="BoolToAngleConverter"/>
+        <helpers:BoolToColorConverter x:Key="BoolToColorConverter"/>
+
+        <!-- 纯图标按钮主题 (无边距、无背景，强隔离) -->
+        <ControlTheme x:Key="RobustPlainIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="RootBorder" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.8"/>
+            </Style>
+            <Style Selector="^:pressed /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.6"/>
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="scale(0.92)"/>
+            </Style>
+        </ControlTheme>
+
+        <!-- 保存按钮图标 (磁盘) -->
+        <GeometryGroup x:Key="SaveIconData">
+            <PathGeometry Figures="M1013.3 223.2l-148.7-148.5c-6.8-6.8-16-10.8-26.2-10.8-7.4 0-32.9 0-70.3 0L256 63.9c-83.7 0-145 0-154.3 0l-1 0c-20.4 0-36.7 16.3-36.7 36.7l0 885.6 0 0.8c0 20.4 16.3 36.9 36.7 36.9l117.9 0 0.8 0 648.3 0 1 0 0.8 0L986 1023.9l1.1 0c20.7 0 36.9-16.5 36.9-36.9l0-736.6 0-0.5C1024 240.2 1020.9 231 1013.3 223.2zM704 128l0 256L320 384l0-256L704 128zM320 960l0-320 448 0 0 320L320 960zM960 960l-90.6 0-0.8 0-1 0L832 960 832 623.2c0-26.8-21.1-47.3-47.2-47.3L303.2 575.9c-25.9 0-47.2 20.4-47.2 47.3l0 336.7-36.7 0-0.8 0L128 959.9l0-832 128 0L256 400.7c0 26.8 21.4 47.3 47.2 47.3l417.5 0c26.2 0 47.2-20.4 47.2-47.3l0-272.7 59.3 0L960 260.4 960 960z"/>
+            <PathGeometry Figures="M672 704 416 704c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0c17.7 0 32-14.3 32-32S689.7 704 672 704z"/>
+            <PathGeometry Figures="M672 832 416 832c-17.7 0-32 14.3-32 32s14.3 32 32 32l256 0c17.7 0 32-14.3 32-32S689.7 832 672 832z"/>
+        </GeometryGroup>
+
+        <!-- 刷新按钮图标 -->
+        <GeometryGroup x:Key="RefreshIconData">
+            <PathGeometry Figures="M369.777778 160.568889a42.666667 42.666667 0 0 1-42.666667 42.666667H128a42.666667 42.666667 0 1 1 0-85.333334h199.111111a42.666667 42.666667 0 0 1 42.666667 42.666667"/>
+            <PathGeometry Figures="M327.111111 402.346667a42.666667 42.666667 0 0 1-42.666667-42.666667v-199.111111a42.666667 42.666667 0 1 1 85.333334 0v199.111111a42.666667 42.666667 0 0 1-42.666667 42.666667"/>
+            <PathGeometry Figures="M512.014222 938.652444h-0.753778a424.533333 424.533333 0 0 1-294.272-124.913777c-80.583111-80.583111-124.956444-187.733333-124.956444-301.696 0-113.976889 44.373333-221.112889 124.970667-301.696l73.088-73.116445a42.680889 42.680889 0 0 1 60.359111 60.344889l-73.102222 73.102222a339.057778 339.057778 0 0 0-99.982223 241.351111A339.128889 339.128889 0 0 0 277.333333 753.422222a339.640889 339.640889 0 0 0 235.406223 99.911111 42.680889 42.680889 0 0 1-0.725334 85.333334"/>
+            <PathGeometry Figures="M654.222222 863.473778v-0.014222a42.666667 42.666667 0 0 1 42.666667-42.666667h199.111111a42.666667 42.666667 0 0 1 0 85.333333H696.888889a42.666667 42.666667 0 0 1-42.666667-42.666666"/>
+            <PathGeometry Figures="M696.888889 621.681778a42.666667 42.666667 0 0 1 42.666667 42.666666v199.111112a42.666667 42.666667 0 0 1-85.333334 0v-199.111112a42.666667 42.666667 0 0 1 42.666667-42.666666"/>
+            <PathGeometry Figures="M703.715556 899.285333a42.638222 42.638222 0 0 1-30.165334-72.832l73.130667-73.102222c133.077333-133.091556 133.077333-349.653333 0-482.730667A339.100444 339.100444 0 0 0 505.315556 170.666667a42.666667 42.666667 0 1 1 0-85.333334c113.976889 0 221.112889 44.387556 301.681777 124.970667 166.357333 166.343111 166.357333 437.048889 0 603.377778l-73.102222 73.116444a42.524444 42.524444 0 0 1-30.165333 12.515556"/>
+        </GeometryGroup>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <!-- 文件列表项按钮 -->
+        <Style Selector="Button.FileItem">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="13"/>
+        </Style>
+        <Style Selector="Button.FileItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlHoverBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.FileItem:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.FileItem:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlPressedBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- 文件夹内子文件项按钮 -->
+        <Style Selector="Button.FileItemSub">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="Button.FileItemSub:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlHoverBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.FileItemSub:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.FileItemSub:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlPressedBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- 操作按钮（保存等）-->
+        <Style Selector="Button.ActionBtn">
+            <Setter Property="Background" Value="#3E3E42"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.ActionBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#565656"/>
+        </Style>
+
+        <!-- 主操作按钮 -->
+        <Style Selector="Button.PrimaryBtn">
+            <Setter Property="Background" Value="#0E70C0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.PrimaryBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="#1080D0"/>
+        </Style>
+
+        <!-- 单个配置项行 -->
+        <Style Selector="Border.EntryCard">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="260,*">
+
+        <!-- ===== 左侧：文件列表 ===== -->
+        <Border Grid.Column="0" Background="{DynamicResource CardBgBrush}" Padding="10,0,0,10">
+            <Grid RowDefinitions="Auto,Auto,*">
+
+                <!-- 顶部标题 + 刷新按钮 -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,5,12">
+                    <TextBlock Grid.Column="0" Text="配置文件" FontSize="18" FontWeight="Bold"
+                                VerticalAlignment="Center">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#FF00FF" Offset="0"/>
+                                <GradientStop Color="#FF69B4" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                                ToolTip.Tip="导入配置文件"
+                                Click="OnImportClick"
+                                IsEnabled="{Binding !IsLoading}">
+                            <PathIcon Data="M563.2 42.666667v640c0 23.466667-19.2 42.666667-42.666667 42.666666s-42.666667-19.2-42.666666-42.666666V42.666667c0-23.466667 19.2-42.666667 42.666666-42.666667s42.666667 19.2 42.666667 42.666667 M806.1952 457.275733L550.5792 712.900267a42.7776 42.7776 0 0 1-60.330667 0c-16.597333-16.605867-16.597333-43.776 0-60.330667l255.616-255.624533a42.7776 42.7776 0 0 1 60.330667 0 42.7776 42.7776 0 0 1 0 60.330666 M490.350933 712.8832L234.734933 457.275733a42.7776 42.7776 0 0 1 0-60.330666c16.597333-16.605867 43.776-16.605867 60.330667 0l255.616 255.616a42.7776 42.7776 0 0 1 0 60.330666 42.7776 42.7776 0 0 1-60.330667 0 M904.533333 1024H136.533333c-70.570667 0-128-57.429333-128-128V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666667 42.666667v256c0 23.552 19.114667 42.666667 42.666666 42.666667h768c23.552 0 42.666667-19.114667 42.666667-42.666667V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666666 42.666667v256c0 70.570667-57.429333 128-128 128"
+                                      Foreground="#d4237a" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                                ToolTip.Tip="打开 UserData 文件夹"
+                                Command="{Binding OpenFolderCommand}"
+                                IsEnabled="{Binding !IsUserDataMissing}">
+                            <PathIcon Data="M928 352v-48c0-35.3-28.7-64-64-64H485.2c-21 0-40.7-10.3-52.6-27.6l-61.5-88.9c-12-17.3-31.6-27.6-52.6-27.6H64c-35.3 0-64 28.7-64 64v656c0 70.7 57.3 128 128 128h638c57.8 0 108.5-38.8 123.6-94.6L928 707.2l74.2-274.5c11-40.7-19.6-80.7-61.8-80.7H928zM80 160h230.1c5.3 0 10.2 2.6 13.2 6.9l50.6 73.1H80c-8.8 0-16-7.2-16-16v-48c0-8.8 7.2-16 16-16z m0 144h768c8.8 0 16 7.2 16 16v32H209c-28.9 0-54.2 19.4-61.8 47.3L79.7 649c-2.4 9-15.7 7.3-15.7-2.1V320c0-8.8 7.2-16 16-16z m784 394.7l-36.2 134c-7.5 27.9-32.9 47.3-61.8 47.3H125.4c-21.1 0-36.4-20-30.9-40.3l111.3-411.8c1.9-7 8.2-11.8 15.4-11.8h698.3c10.5 0 18.2 10 15.4 20.2l-7 25.7L864 698.7z"
+                                      Foreground="#d4237a" Width="18" Height="18"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                                ToolTip.Tip="刷新"
+                                Command="{Binding RefreshCommand}"
+                                IsEnabled="{Binding !IsLoading}">
+                            <PathIcon Data="{StaticResource RefreshIconData}" 
+                                      Width="18" Height="18" Foreground="#d4237a"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 状态信息 -->
+                <TextBlock Grid.Row="1" Text="{Binding StatusMessage}"
+                           FontSize="11" Foreground="#888888"
+                           TextWrapping="Wrap" Margin="0,0,10,10"
+                           IsVisible="{Binding !IsUserDataMissing}"/>
+
+                <!-- 缺少 UserData (Melon Loader 未安装) 提示 (左侧) -->
+                <TextBlock Grid.Row="2" Text="请先安装Melon Loader" FontSize="18" Foreground="White"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding IsUserDataMissing}"/>
+
+                <!-- 文件列表 -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" IsVisible="{Binding !IsUserDataMissing}">
+                    <ItemsControl ItemsSource="{Binding CfgNodes}">
+                        <ItemsControl.ItemTemplate>
+                            <!-- 递归模板 -->
+                            <DataTemplate x:DataType="models:CfgFolderNode">
+                                <StackPanel>
+                                    <!-- 文件节点 -->
+                                        <Button x:Name="FileBtn" Classes="FileItem" IsVisible="{Binding IsFileNode}" Margin="0,0,0,4"
+                                            Command="{Binding $parent[UserControl].((vm:ConfigManagerViewModel)DataContext).SelectFileCommand}"
+                                            CommandParameter="{Binding FileItem}"
+                                            PointerPressed="OnFileNodePointerPressed">
+                                        <TextBlock Text="{Binding FileItem.FileName, FallbackValue=''}"
+                                                   FontWeight="Medium" Foreground="White"
+                                                   FontSize="13"/>
+                                    </Button>
+
+                                    <!-- 文件夹节点 -->
+                                    <StackPanel IsVisible="{Binding !IsFileNode}" Margin="0,0,0,6">
+                                        <!-- 文件夹标题区 -->
+                                        <Button Classes="FileItem" Command="{Binding ToggleExpandCommand}" HorizontalContentAlignment="Stretch" PointerPressed="OnFolderNodePointerPressed">
+                                            <Grid ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0" Spacing="2">
+                                                    <TextBlock Text="{Binding FolderName}"
+                                                               FontWeight="Bold" Foreground="White"
+                                                               FontSize="14" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding Children.Count, StringFormat='包含 {0} 个项'}"
+                                                               FontSize="10" Foreground="#666666"/>
+                                                </StackPanel>
+                                                <PathIcon Grid.Column="1" VerticalAlignment="Center" Margin="0,0,5,0"
+                                                          Data="M1015.68 282.24l-77.44-81.28a28.16 28.16 0 0 0-40.32 0L508.16 596.48 128 200.96a27.52 27.52 0 0 0-40.32 0L8.96 283.52a30.72 30.72 0 0 0 0 42.88l478.72 497.28a28.16 28.16 0 0 0 40.32 0l64-64 426.24-432a31.36 31.36 0 0 0-2.56-45.44z"
+                                                          Foreground="{Binding IsExpanded, Converter={StaticResource BoolToColorConverter}}" 
+                                                          Width="14" Height="14">
+                                                    <PathIcon.RenderTransform>
+                                                        <RotateTransform Angle="{Binding IsExpanded, Converter={StaticResource BoolToAngleConverter}}"/>
+                                                    </PathIcon.RenderTransform>
+                                                </PathIcon>
+                                            </Grid>
+                                        </Button>
+
+                                        <!-- 递归渲染子项 (文件夹或文件) -->
+                                        <ItemsControl ItemsSource="{Binding Children}" IsVisible="{Binding IsExpanded}" 
+                                                      Margin="12,4,0,0"
+                                                      ItemTemplate="{Binding $parent[ItemsControl].ItemTemplate}">
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- ===== 右侧：配置项编辑器 ===== -->
+        <Grid Grid.Column="1" Margin="12,0,0,0">
+
+            <!-- 未选择文件时的占位提示 (如果有文件可选) -->
+            <TextBlock Text="← 选择左侧的配置文件来编辑"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       FontSize="15" Foreground="#555555">
+                <TextBlock.IsVisible>
+                    <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="!HasSelectedFile"/>
+                        <Binding Path="!IsUserDataMissing"/>
+                    </MultiBinding>
+                </TextBlock.IsVisible>
+            </TextBlock>
+
+            <!-- 缺少 UserData 提示 (右侧区域也显示居中白字，或者直接空白，这里按要求居中白字) -->
+            <TextBlock Text="请先安装Melon Loader" FontSize="18" Foreground="White"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       IsVisible="{Binding IsUserDataMissing}"/>
+
+            <!-- 选择了文件后显示的内容 -->
+            <Grid RowDefinitions="Auto,Auto,*,Auto" IsVisible="{Binding HasSelectedFile}">
+
+                <!-- 文件标题 + 全部保存按钮 -->
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                    <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding SelectedFile.FileName}"
+                                   FontSize="18" FontWeight="Bold" Foreground="White"/>
+                        <TextBlock Text="{Binding SelectedFile.TruncatedFilePath}"
+                                   FontSize="10" Foreground="#666666"
+                                   ToolTip.Tip="{Binding SelectedFile.FilePath}"
+                                   ToolTip.ShowDelay="1500">
+                            <TextBlock.Styles>
+                                <Style Selector="ToolTip">
+                                    <Setter Property="Background" Value="#111111"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="BorderBrush" Value="#444444"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Setter Property="CornerRadius" Value="4"/>
+                                    <Setter Property="Padding" Value="8,4"/>
+                                </Style>
+                            </TextBlock.Styles>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                                ToolTip.Tip="全部保存"
+                                Command="{Binding SaveAllCommand}">
+                            <PathIcon Data="{StaticResource SaveIconData}" Width="20" Height="20" Foreground="#d4237a"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <Border Grid.Row="1" Height="1" Background="#333333" Margin="0,0,0,10"/>
+
+                <!-- 配置项列表 -->
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding SelectedFile.Entries}" Margin="0,0,8,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:CfgEntry">
+                                <Panel>
+                                    <!-- 当该项为段落标题时，显示这个块，隐藏原本的输入框 -->
+                                    <Border IsVisible="{Binding IsSectionHeader}"
+                                            Background="#1E1E1E"
+                                            CornerRadius="6"
+                                            Padding="12,8"
+                                            Margin="0,8,0,8"
+                                            BorderThickness="1"
+                                            BorderBrush="#444444">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <TextBlock Grid.Column="0" Text="{Binding SectionName, StringFormat='[{0}]'}"
+                                                       FontSize="16" FontWeight="Bold"
+                                                       Foreground="#FF69B4"
+                                                       VerticalAlignment="Center"/>
+                                            <Button Grid.Column="1" 
+                                                    Theme="{StaticResource RobustPlainIconBtn}"
+                                                    ToolTip.Tip="删除整段配置"
+                                                    Click="OnDeleteSectionClick"
+                                                    Tag="{Binding}">
+                                                <PathIcon Data="M107.632 107.632c15.52-15.52 40.64-15.52 56.16 0L512 455.824 860.208 107.632a39.712 39.712 0 0 1 56.16 56.16L568.176 512l348.192 348.208c14.832 14.832 15.472 38.48 1.936 54.08l-1.936 2.08c-15.52 15.52-40.64 15.52-56.16 0L512 568.176 163.792 916.368a39.712 39.712 0 1 1-56.16-56.16L455.824 512 107.632 163.792a39.712 39.712 0 0 1-1.936-54.08z"
+                                                          Foreground="#d4237a" Width="16" Height="16"/>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- 当该项不是段落标题时，显示原本的具体配置 -->
+                                    <Border Classes="EntryCard" IsVisible="{Binding !IsSectionHeader}">
+                                        <Grid RowDefinitions="Auto,Auto">
+
+                                            <!-- 注释（如有） -->
+                                            <Border Grid.Row="0"
+                                                    Background="#1E1E1E"
+                                                    CornerRadius="4"
+                                                    Padding="8,4"
+                                                    Margin="0,0,0,8"
+                                                    IsVisible="{Binding DisplayComment, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBlock Text="{Binding DisplayComment}"
+                                                           FontSize="12" Foreground="#AAAAAA"
+                                                           FontStyle="Italic" TextWrapping="Wrap"/>
+                                            </Border>
+
+                                            <!-- 键 + 值控件 -->
+                                            <Grid Grid.Row="1" ColumnDefinitions="*, 120">
+
+                                                <!-- Key 标签 -->
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Key}"
+                                                           FontSize="14" FontWeight="SemiBold"
+                                                           Foreground="#DDDDDD"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,10,0"/>
+
+                                                <!-- 值输入区域 (靠右对齐且宽度统一为 120) -->
+                                                <Panel Grid.Column="1">
+                                                    <!-- 有预定义选项 → ComboBox -->
+                                                    <ComboBox IsVisible="{Binding HasOptions}"
+                                                              ItemsSource="{Binding AvailableOptions}"
+                                                              SelectedItem="{Binding Value}"
+                                                              HorizontalAlignment="Stretch"
+                                                              Background="#333333"
+                                                              Foreground="White"
+                                                              BorderThickness="1"
+                                                              BorderBrush="#555555"/>
+
+                                                    <!-- 无选项 → TextBox 自由输入 -->
+                                                    <TextBox IsVisible="{Binding !HasOptions}"
+                                                             Text="{Binding Value}"
+                                                             Background="#333333"
+                                                             Foreground="White"
+                                                             BorderThickness="1"
+                                                             BorderBrush="#555555"
+                                                             CornerRadius="4"
+                                                             Padding="8,4"
+                                                             PointerWheelChanged="OnTextBoxWheelChanged"/>
+                                                </Panel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Panel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- 空文件提示 -->
+                <TextBlock Grid.Row="2"
+                           Text="该配置文件中未找到有效的配置项"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#555555" FontSize="14"
+                           IsVisible="False"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

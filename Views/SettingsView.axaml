@@ -1,0 +1,195 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MdModManager.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="MdModManager.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <UserControl.Resources>
+        <!-- 纯图标按钮主题 (无边距、无背景) -->
+        <ControlTheme x:Key="RobustPlainIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="RootBorder" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.8"/>
+            </Style>
+            <Style Selector="^:pressed /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.6"/>
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+    
+    <Panel>
+        <Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="30" Margin="20">
+            <!-- Title -->
+            <TextBlock Text="设置" FontSize="28" FontWeight="Bold">
+                <TextBlock.Foreground>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#FF00FF" Offset="0"/>
+                        <GradientStop Color="#FF69B4" Offset="1"/>
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
+            </TextBlock>
+
+            <!-- Settings List -->
+            <Grid ColumnDefinitions="Auto, 20, *" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="15">
+                
+                <!-- 1. 自动翻译 Mod 详情开关 -->
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="自动翻译至中文" 
+                           FontSize="18" 
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <CheckBox Grid.Row="0" Grid.Column="2"
+                          IsChecked="{Binding AutoTranslateDescriptions}"
+                          VerticalAlignment="Center"/>
+
+                <!-- 2. 不兼容 Mod 提醒开关 -->
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="下载不兼容 Mod 时不再提醒"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <CheckBox Grid.Row="1" Grid.Column="2"
+                          IsChecked="{Binding SuppressIncompatibleModWarning}"
+                          VerticalAlignment="Center"/>
+
+                <!-- 3. 删除确认弹窗开关 -->
+                <TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="删除时不再显示确认弹窗"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <CheckBox Grid.Row="2" Grid.Column="2"
+                          IsChecked="{Binding SuppressDeleteConfirmation}"
+                          VerticalAlignment="Center"/>
+
+                <!-- 4. 谱面名称滚动开关 -->
+                <TextBlock Grid.Row="3" Grid.Column="0"
+                           Text="谱面名称过长时滚动显示"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <CheckBox Grid.Row="3" Grid.Column="2"
+                          IsChecked="{Binding EnableChartNameMarquee}"
+                          VerticalAlignment="Center"/>
+
+                <!-- 4.1 启动游戏确认弹窗开关 -->
+                <TextBlock Grid.Row="4" Grid.Column="0"
+                           Text="启动/重启游戏时不再显示确认弹窗"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <CheckBox Grid.Row="4" Grid.Column="2"
+                          IsChecked="{Binding SuppressLaunchGameConfirmation}"
+                          VerticalAlignment="Center"/>
+
+                <!-- 5. Download Source Setting Item -->
+                <TextBlock Grid.Row="5" Grid.Column="0" 
+                           Text="MelonLoader 下载源" 
+                           FontSize="18" 
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <ComboBox Grid.Row="5" Grid.Column="2"
+                          ItemsSource="{Binding DownloadSources}"
+                          SelectedItem="{Binding SelectedDownloadSource}"
+                          Width="180"
+                          HorizontalContentAlignment="Left"/>
+
+                <!-- 6. 谱面试听音量 -->
+                <TextBlock Grid.Row="6" Grid.Column="0"
+                           Text="谱面试听音量"
+                           FontSize="18"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                <Slider Grid.Row="6" Grid.Column="2"
+                        Width="200" HorizontalAlignment="Left"
+                        Minimum="0" Maximum="1"
+                        Value="{Binding ChartPreviewVolume}"
+                        VerticalAlignment="Center"/>
+
+                <!-- 7. 隐藏功能：神秘按钮组 (选择图片，清除图片并恢复一般主题，自定义文字颜色) -->
+                <StackPanel Grid.Row="7" Grid.Column="0" Orientation="Horizontal" Spacing="15" VerticalAlignment="Center">
+                    <Button Command="{Binding SelectBackgroundImageCommand}"
+                            Theme="{StaticResource RobustPlainIconBtn}"
+                            IsVisible="{Binding IsSecretBackgroundUnlocked}"
+                            ToolTip.Tip="选择自定义背景图片">
+                        <Path Data="M310.272 198.656q19.456 0 37.376 7.68t30.72 20.48 20.48 30.208 7.68 36.864q0 39.936-28.16 67.584t-68.096 27.648q-19.456 0-36.864-7.168t-30.208-20.48-20.48-30.208-7.68-37.376q0-19.456 7.68-36.864t20.48-30.208 30.208-20.48 36.864-7.68zM875.52 49.152q52.224 0 74.24 29.184t22.016 76.288l0 735.232q0 14.336-6.656 29.184t-18.432 26.112-27.136 18.432-33.792 7.168l-754.688 0q-31.744 0-55.808-25.6t-24.064-61.44l0-749.568q0-36.864 20.48-60.928t54.272-24.064l749.568 0zM879.616 168.96q0-11.264-8.704-19.968t-20.992-8.704l-677.888 0q-12.288 0-20.48 8.704t-8.192 19.968l0 1.024 0 366.592q10.24 12.288 27.136 28.16t39.936 29.696 52.224 23.552 65.024 9.728q55.296 0 97.28-17.92t79.36-44.032 73.216-57.344 78.336-58.368 96.768-46.08 126.976-22.016l0-212.992z" 
+                              Fill="#d4237a" Stretch="Uniform" Width="22" Height="22"/>
+                    </Button>
+                    
+                    <Button Command="{Binding ClearBackgroundImageCommand}"
+                            Theme="{StaticResource RobustPlainIconBtn}"
+                            IsVisible="{Binding IsSecretBackgroundUnlocked}"
+                            ToolTip.Tip="恢复通常模式">
+                        <Path Data="M714.605714 892.196571a242.834286 242.834286 0 1 1 242.614857-242.980571v0.219429a242.980571 242.980571 0 0 1-242.980571 242.834285h0.438857z m-407.844571 0a242.834286 242.834286 0 0 1-92.525714-467.382857 306.102857 306.102857 0 0 0 193.243428 208.457143v16.091429c-0.073143 65.609143 20.992 129.462857 60.050286 182.125714a243.565714 243.565714 0 0 1-160.768 60.708571zM510.464 100.937143A243.053714 243.053714 0 0 1 753.371429 343.771429v1.024a307.419429 307.419429 0 0 0-335.140572 223.451428A242.834286 242.834286 0 0 1 510.537143 100.937143z m306.761143 259.291428V343.771429a307.2 307.2 0 0 0-614.4 0v16.091428a307.2 307.2 0 1 0 307.638857 519.314286 306.980571 306.980571 0 1 0 306.761143-518.875429z" 
+                              Fill="#E0E0E0" Stretch="Uniform" Width="22" Height="22"/>
+                    </Button>
+
+                    <Button Command="{Binding ToggleCustomThemeColorInputCommand}"
+                            Theme="{StaticResource RobustPlainIconBtn}"
+                            IsVisible="{Binding IsSecretBackgroundUnlocked}"
+                            ToolTip.Tip="自定义文字颜色 (恢复一般主题时不保留)">
+                        <Path Data="M187.3 81.2h685.5c35.5 0 64.3 28.8 64.3 64.3s-28.8 64.3-64.3 64.3H187.3c-35.5 0-64.3-28.8-64.3-64.3s28.8-64.3 64.3-64.3z M530 124c35.5 0 64.3 28.8 64.3 64.3v728.3c0 35.5-28.8 64.3-64.3 64.3s-64.3-28.8-64.3-64.3V188.3c0-35.5 28.8-64.3 64.3-64.3z" 
+                              Fill="#1296db" Stretch="Uniform" Width="22" Height="22"/>
+                    </Button>
+                            
+                    <TextBox Text="{Binding CustomThemeTextColor}"
+                             IsVisible="{Binding IsCustomColorInputVisible}"
+                             Watermark="#FFFFFF"
+                             Width="80" Height="25"
+                             Padding="5,0"
+                             VerticalContentAlignment="Center"
+                             FontSize="12"/>
+                </StackPanel>
+
+                <Slider Grid.Row="7" Grid.Column="2"
+                        Width="200" HorizontalAlignment="Left"
+                        Minimum="0.1" Maximum="1.0"
+                        IsVisible="{Binding IsSecretBackgroundUnlocked}"
+                        Value="{Binding CustomBackgroundOpacity}"
+                        ToolTip.Tip="调整背景亮度"
+                        VerticalAlignment="Center"/>
+
+            </Grid>
+        </StackPanel>
+        </ScrollViewer>
+        </Grid>
+
+        <!-- 作者签名与主页链接 -->
+        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,15,15"
+                Command="{Binding OpenAuthorHomepageCommand}"
+                ToolTip.Tip="在浏览器中打开作者 Bilibili 空间">
+            <TextBlock Text="Crafted By 其实我叫苏子沫"
+                       Padding="0,0,10,0"
+                       FontSize="18"
+                       VerticalAlignment="Center"
+                       FontFamily="Candara, Comic Sans MS, STXingkai, Microsoft YaHei, sans-serif"
+                       FontWeight="Bold"
+                       FontStyle="Italic"
+                       Opacity="0.9">
+                <TextBlock.Foreground>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#FF69B4" Offset="0"/>
+                        <GradientStop Color="#FF1493" Offset="1"/>
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
+            </TextBlock>
+        </Button>
+    </Panel>
+</UserControl>

@@ -1,0 +1,187 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using MdModManager.Models;
+
+namespace MdModManager.Services;
+
+public interface IMelonLoaderService
+{
+    Task<List<GitHubRelease>> GetReleasesAsync(CancellationToken cancellationToken = default);
+    string? GetCurrentVersion();
+    Task InstallAsync(string downloadUrl, IProgress<double>? progress = null);
+    Task UninstallAsync();
+}
+
+public class MelonLoaderService : IMelonLoaderService
+{
+    private readonly IConfigService _configService;
+    private readonly HttpClient _httpClient;
+    private const string ApiUrl = "https://api.github.com/repos/LavaGang/MelonLoader/releases";
+
+    public MelonLoaderService(IConfigService configService)
+    {
+        _configService = configService;
+        _httpClient = new HttpClient();
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", "MdModManager");
+    }
+
+    public async Task<List<GitHubRelease>> GetReleasesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _httpClient.GetStringAsync(ApiUrl, cancellationToken);
+            var releases = JsonSerializer.Deserialize(response, AppJsonContext.Default.GitHubReleaseArray);
+            return new List<GitHubRelease>(releases ?? Array.Empty<GitHubRelease>());
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to fetch ML releases: {ex}");
+            return new List<GitHubRelease>();
+        }
+    }
+
+    public string? GetCurrentVersion()
+    {
+        var gamePath = _configService.Config.GamePath;
+        if (string.IsNullOrEmpty(gamePath)) return null;
+
+        var paths = new[]
+        {
+            Path.Combine(gamePath, "MelonLoader", "net6", "MelonLoader.dll"),
+            Path.Combine(gamePath, "MelonLoader", "net35", "MelonLoader.dll"),
+            Path.Combine(gamePath, "MelonLoader", "MelonLoader.dll")
+        };
+
+        string? mlDllPath = null;
+        foreach (var path in paths)
+        {
+            if (File.Exists(path))
+            {
+                mlDllPath = path;
+                break;
+            }
+        }
+
+        if (mlDllPath == null) return null;
+
+        try
+        {
+            var versionInfo = FileVersionInfo.GetVersionInfo(mlDllPath);
+            var version = versionInfo.ProductVersion ?? versionInfo.FileVersion;
+            if (version != null && version.Contains('+'))
+            {
+                version = version.Substring(0, version.IndexOf('+'));
+            }
+            return version;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task InstallAsync(string downloadUrl, IProgress<double>? progress = null)
+    {
+        var gamePath = _configService.Config.GamePath;
+        if (string.IsNullOrEmpty(gamePath)) throw new Exception("Game path not set.");
+
+        var tempZip = Path.Combine(Path.GetTempPath(), "MelonLoader.zip");
+
+        // Download
+        using (var response = await _httpClient.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
+        {
+            response.EnsureSuccessStatusCode();
+            var totalBytes = response.Content.Headers.ContentLength ?? 1L;
+
+            using var contentStream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+
+            var buffer = new byte[8192];
+            long totalRead = 0;
+            int read;
+
+            while ((read = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, read);
+                totalRead += read;
+                progress?.Report((double)totalRead / totalBytes * 100);
+            }
+        }
+
+        // Extract
+        await Task.Run(() =>
+        {
+            try
+            {
+                using var archive = ZipFile.OpenRead(tempZip);
+                foreach (var entry in archive.Entries)
+                {
+                    var destinationPath = Path.Combine(gamePath, entry.FullName);
+                    var destinationDir = Path.GetDirectoryName(destinationPath);
+                    
+                    if (!string.IsNullOrEmpty(destinationDir) && !Directory.Exists(destinationDir))
+                    {
+                        Directory.CreateDirectory(destinationDir);
+                    }
+
+                    if (!string.IsNullOrEmpty(entry.Name))
+                    {
+                        entry.ExtractToFile(destinationPath, overwrite: true);
+                    }
+                }
+
+                // Explicitly create normal MelonLoader accessory folders
+                string[] extraDirs = { "Mods", "Plugins", "UserData", "UserLibs", "Custom_Albums" };
+                foreach (var dir in extraDirs)
+                {
+                    var path = Path.Combine(gamePath, dir);
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"解压失败: {ex.Message} (可能游戏正在运行？请关闭游戏后再试)", ex);
+            }
+            finally
+            {
+                if (File.Exists(tempZip))
+                    File.Delete(tempZip);
+            }
+        });
+    }
+
+    public async Task UninstallAsync()
+    {
+        var gamePath = _configService.Config.GamePath;
+        if (string.IsNullOrEmpty(gamePath)) return;
+
+        await Task.Run(() =>
+        {
+            var mlDir = Path.Combine(gamePath, "MelonLoader");
+            if (Directory.Exists(mlDir)) Directory.Delete(mlDir, true);
+
+            var dobby = Path.Combine(gamePath, "dobby.dll");
+            if (File.Exists(dobby)) File.Delete(dobby);
+
+            var version = Path.Combine(gamePath, "version.dll");
+            if (File.Exists(version)) File.Delete(version);
+
+            var notice = Path.Combine(gamePath, "NOTICE.txt");
+            if (File.Exists(notice)) File.Delete(notice);
+        });
+    }
+}

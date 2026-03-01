@@ -1,0 +1,308 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MdModManager.ViewModels"
+             xmlns:helpers="using:MdModManager.Helpers"
+             xmlns:models="using:MdModManager.Models"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="MdModManager.Views.ModManagerView"
+             x:DataType="vm:ModManagerViewModel"
+             DragDrop.AllowDrop="True">
+    <UserControl.Resources>
+        <helpers:BoolToAngleConverter x:Key="BoolToAngleConverter"/>
+        <helpers:BoolToColorConverter x:Key="BoolToColorConverter"/>
+
+        <!-- 纯图标按钮主题 (无边距、无背景，强隔离) -->
+        <ControlTheme x:Key="RobustPlainIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="RootBorder" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.8"/>
+            </Style>
+            <Style Selector="^:pressed /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.6"/>
+            </Style>
+            <Style Selector="^:pressed">
+                <Setter Property="RenderTransform" Value="scale(0.92)"/>
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <UserControl.Styles>
+        <Style Selector="Button.TabBtn">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="25,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.TabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlHoverBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.TabBtn:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.TabBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlPressedBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.ActiveTabBtn">
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="25,8"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="BorderBrush" Value="#FF00FF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
+        <Style Selector="Button.ActiveTabBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardHoverBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.ActiveTabBtn:focus /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource CardBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+        <Style Selector="Button.ActiveTabBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource ControlPressedBgBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+
+    </UserControl.Styles>
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,20">
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="15">
+                <Button Content="本地" Command="{Binding SelectLocalTabCommand}"
+                        Classes.ActiveTabBtn="{Binding IsLocalTabSelected}"
+                        Classes.TabBtn="{Binding !IsLocalTabSelected}"/>
+                
+                <Button Command="{Binding SelectUpdateTabCommand}"
+                        Classes.ActiveTabBtn="{Binding IsUpdateTabSelected}"
+                        Classes.TabBtn="{Binding !IsUpdateTabSelected}">
+                    <Panel>
+                        <TextBlock Text="更新" VerticalAlignment="Center"
+                                   IsVisible="{Binding ShowUpdateBadge}"
+                                   FontWeight="Bold" Foreground="#FF00FF"/>
+                        <TextBlock Text="更新" VerticalAlignment="Center"
+                                   IsVisible="{Binding !ShowUpdateBadge}"/>
+                    </Panel>
+                </Button>
+
+                <Button Content="下载" Command="{Binding SelectDownloadTabCommand}"
+                        Classes.ActiveTabBtn="{Binding IsDownloadTabSelected}"
+                        Classes.TabBtn="{Binding !IsDownloadTabSelected}"/>
+
+                <Button Theme="{StaticResource RobustPlainIconBtn}"
+                        Click="OnImportClick"
+                        ToolTip.Tip="导入 Mod (.dll / .zip)">
+                    <PathIcon Data="M563.2 42.666667v640c0 23.466667-19.2 42.666667-42.666667 42.666666s-42.666667-19.2-42.666666-42.666666V42.666667c0-23.466667 19.2-42.666667 42.666666-42.666667s42.666667 19.2 42.666667 42.666667 M806.1952 457.275733L550.5792 712.900267a42.7776 42.7776 0 0 1-60.330667 0c-16.597333-16.605867-16.597333-43.776 0-60.330667l255.616-255.624533a42.7776 42.7776 0 0 1 60.330667 0 42.7776 42.7776 0 0 1 0 60.330666 M490.350933 712.8832L234.734933 457.275733a42.7776 42.7776 0 0 1 0-60.330666c16.597333-16.605867 43.776-16.605867 60.330667 0l255.616 255.616a42.7776 42.7776 0 0 1 0 60.330666 42.7776 42.7776 0 0 1-60.330667 0 M904.533333 1024H136.533333c-70.570667 0-128-57.429333-128-128V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666667 42.666667v256c0 23.552 19.114667 42.666667 42.666666 42.666667h768c23.552 0 42.666667-19.114667 42.666667-42.666667V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666666 42.666667v256c0 70.570667-57.429333 128-128 128" 
+                              Foreground="#d4237a" Width="20" Height="20"/>
+                </Button>
+                <Button Theme="{StaticResource RobustPlainIconBtn}"
+                        Command="{Binding OpenFolderCommand}"
+                        ToolTip.Tip="打开 Mod 文件夹"
+                        Margin="10,0,0,0">
+                    <PathIcon Data="M928 352v-48c0-35.3-28.7-64-64-64H485.2c-21 0-40.7-10.3-52.6-27.6l-61.5-88.9c-12-17.3-31.6-27.6-52.6-27.6H64c-35.3 0-64 28.7-64 64v656c0 70.7 57.3 128 128 128h638c57.8 0 108.5-38.8 123.6-94.6L928 707.2l74.2-274.5c11-40.7-19.6-80.7-61.8-80.7H928zM80 160h230.1c5.3 0 10.2 2.6 13.2 6.9l50.6 73.1H80c-8.8 0-16-7.2-16-16v-48c0-8.8 7.2-16 16-16z m0 144h768c8.8 0 16 7.2 16 16v32H209c-28.9 0-54.2 19.4-61.8 47.3L79.7 649c-2.4 9-15.7 7.3-15.7-2.1V320c0-8.8 7.2-16 16-16z m784 394.7l-36.2 134c-7.5 27.9-32.9 47.3-61.8 47.3H125.4c-21.1 0-36.4-20-30.9-40.3l111.3-411.8c1.9-7 8.2-11.8 15.4-11.8h698.3c10.5 0 18.2 10 15.4 20.2l-7 25.7L864 698.7z" 
+                              Foreground="#d4237a" Width="20" Height="20"/>
+                </Button>
+                <Button Theme="{StaticResource RobustPlainIconBtn}"
+                        Command="{Binding RefreshModListCommand}"
+                        ToolTip.Tip="刷新 Mod 列表"
+                        Margin="10,0,0,0">
+                    <PathIcon Data="M369.777778 160.568889a42.666667 42.666667 0 0 1-42.666667 42.666667H128a42.666667 42.666667 0 1 1 0-85.333334h199.111111a42.666667 42.666667 0 0 1 42.666667 42.666667 M327.111111 402.346667a42.666667 42.666667 0 0 1-42.666667-42.666667v-199.111111a42.666667 42.666667 0 1 1 85.333334 0v199.111111a42.666667 42.666667 0 0 1-42.666667 42.666667 M512.014222 938.652444h-0.753778a424.533333 424.533333 0 0 1-294.272-124.913777c-80.583111-80.583111-124.956444-187.733333-124.956444-301.696 0-113.976889 44.373333-221.112889 124.970667-301.696l73.088-73.116445a42.680889 42.680889 0 0 1 60.359111 60.344889l-73.102222 73.102222a339.057778 339.057778 0 0 0-99.982223 241.351111A339.128889 339.128889 0 0 0 277.333333 753.422222a339.640889 339.640889 0 0 0 235.406223 99.911111 42.680889 42.680889 0 0 1-0.725334 85.333334 M654.222222 863.473778v-0.014222a42.666667 42.666667 0 0 1 42.666667-42.666667h199.111111a42.666667 42.666667 0 0 1 0 85.333333H696.888889a42.666667 42.666667 0 0 1-42.666667-42.666666 M696.888889 621.681778a42.666667 42.666667 0 0 1 42.666667 42.666666v199.111112a42.666667 42.666667 0 0 1-85.333334 0v-199.111112a42.666667 42.666667 0 0 1 42.666667-42.666666 M703.715556 899.285333a42.638222 42.638222 0 0 1-30.165334-72.832l73.130667-73.102222c133.077333-133.091556 133.077333-349.653333 0-482.730667A339.100444 339.100444 0 0 0 505.315556 170.666667a42.666667 42.666667 0 1 1 0-85.333334c113.976889 0 221.112889 44.387556 301.681777 124.970667 166.357333 166.343111 166.357333 437.048889 0 603.377778l-73.102222 73.116444a42.524444 42.524444 0 0 1-30.165333 12.515556" 
+                              Foreground="#d4237a" Width="20" Height="20"/>
+                </Button>
+            </StackPanel>
+            
+            <TextBox Grid.Column="2" Text="{Binding SearchText}" Watermark="搜索 Mod 名称或作者..." Width="250" VerticalAlignment="Center" Padding="8">
+                <TextBox.InnerRightContent>
+                    <Button Command="{Binding ClearSearchCommand}" 
+                            IsVisible="{Binding SearchText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                            Theme="{StaticResource RobustPlainIconBtn}" Margin="0,0,10,0">
+                        <TextBlock Text="清空" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#FF00FF"/>
+                    </Button>
+                </TextBox.InnerRightContent>
+            </TextBox>
+        </Grid>
+
+        <!-- 用外层 DockPanel 包裹：Button 固定在最下方，剩余空间用 Grid 包裹 -->
+        <DockPanel Grid.Row="1">
+            <!-- 不再提醒按键：固定在底部，仅有更新时显示 -->
+            <Button Content="不再提醒"
+                    DockPanel.Dock="Bottom"
+                    IsVisible="{Binding ShowDismissUpdateNoticeButton}"
+                    Command="{Binding DismissUpdateNoticeCommand}"
+                    HorizontalAlignment="Center"
+                    Margin="0,8,0,4"
+                    Background="{DynamicResource ControlBgBrush}" Foreground="Gray"
+                    Padding="20,6" CornerRadius="5" FontSize="13"/>
+
+            <Grid>
+                <!-- 没安装 Melon Loader (缺少 Mods 文件夹) 时的状态面板 -->
+                <StackPanel IsVisible="{Binding IsModsFolderMissing}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+                    <TextBlock Text="请先安装Melon Loader" FontSize="18" Foreground="White" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 更新列表为空时显示的状态面板 -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsUpdateTabEmpty"/>
+                            <Binding Path="!IsModsFolderMissing"/>
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Text="🎉" FontSize="60" HorizontalAlignment="Center" Foreground="Gray"/>
+                    <TextBlock Text="当前没有可用的更新哦" FontSize="18" Foreground="Gray" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 本地列表为空时的状态面板 -->
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="15">
+                    <StackPanel.IsVisible>
+                        <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="IsLocalTabEmpty"/>
+                            <Binding Path="!IsModsFolderMissing"/>
+                            <Binding Path="IsLocalTabSelected"/>
+                        </MultiBinding>
+                    </StackPanel.IsVisible>
+                    <TextBlock Text="请前往下载或导入mod" FontSize="18" Foreground="Gray" HorizontalAlignment="Center"/>
+                </StackPanel>
+
+                <ScrollViewer IsVisible="{Binding !IsModsFolderMissing}">
+                    <ItemsControl ItemsSource="{Binding Mods}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:LocalMod">
+                            <Border Background="{DynamicResource ModCardBgBrush}" CornerRadius="5" Padding="15" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <Grid ColumnDefinitions="*, Auto, Auto">
+
+
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock FontSize="18" FontWeight="Bold" Foreground="White"
+                                                       helpers:TextBlockHelper.HighlightText="{Binding Name}"
+                                                       helpers:TextBlockHelper.SearchText="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).SearchText}"/>
+                                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,5,0,0">
+                                                <TextBlock Text="{Binding Version, StringFormat='版本: {0}'}" Foreground="Gray"/>
+                                                <TextBlock Foreground="Gray"
+                                                           helpers:TextBlockHelper.HighlightText="{Binding Author, StringFormat='作者: {0}'}"
+                                                           helpers:TextBlockHelper.SearchText="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).SearchText}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="已禁用" IsVisible="{Binding IsDisabled}" Foreground="Red" Margin="0,5,0,0"/>
+                                            <!-- 本地/更新列表：有更新时显示远端版本号 -->
+                                            <TextBlock Text="{Binding UpdateAvailableText}" IsVisible="{Binding HasUpdate}" Foreground="#FF00FF" Margin="0,5,0,0"/>
+                                            <!-- 下载列表：已安装且无更新 → 最新版本 -->
+                                            <TextBlock Text="最新版本" IsVisible="{Binding DownloadListIsUpToDate}" Foreground="#4EC94E" Margin="0,5,0,0"/>
+                                            <!-- 下载列表：已安装但有更新 → 有更新可用（下载列表不显示版本号，只提示） -->
+                                            <TextBlock Text="有更新可用" IsVisible="{Binding DownloadListHasUpdate}" Foreground="#FF00FF" Margin="0,5,0,0"/>
+                                            <!-- 下载列表：未安装（仅在下载Tab且未安装时显示，本地/更新列表不会出现） -->
+                                            <TextBlock Text="未安装" IsVisible="{Binding ShowNotInstalledBadge}" Foreground="Gray" Margin="0,5,0,0"/>
+                                            <!-- 占位：不兼容（逻辑待实现） -->
+                                            <TextBlock Text="不兼容" IsVisible="{Binding IsIncompatible}" Foreground="Red" Margin="0,5,0,0"/>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="0,0,15,0">
+                                            <!-- ===== 下载列表专属按钮区 ===== -->
+                                            <Button Width="100" HorizontalContentAlignment="Center"
+                                                    IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                                    Background="Transparent" BorderThickness="0" Foreground="#A0A0A0"
+                                                    Command="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).OpenHomePageCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="前往详情页"/>
+
+                                            <!-- 下载按钮 -->
+                                            <Button Width="80" HorizontalContentAlignment="Center"
+                                                    IsVisible="{Binding FilePath, Converter={x:Static StringConverters.IsNullOrEmpty}}"
+                                                    Click="OnDownloadClick"
+                                                    Tag="{Binding}">
+                                                <Panel>
+                                                    <TextBlock Text="下载" HorizontalAlignment="Center"
+                                                               IsVisible="{Binding !IsLocallyInstalled}"/>
+                                                    <TextBlock Text="再次下载" HorizontalAlignment="Center"
+                                                               IsVisible="{Binding IsLocallyInstalled}"/>
+                                                </Panel>
+                                            </Button>
+
+                                            <!-- ===== 更新列表专属按钮区：仅在更新Tab中显示 ===== -->
+                                            <Button Width="80" HorizontalContentAlignment="Center"
+                                                    IsVisible="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).IsUpdateTabSelected}"
+                                                    Background="#FF00FF" Foreground="White"
+                                                    Command="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).UpdateModCommand}"
+                                                    CommandParameter="{Binding}"
+                                                    Content="更新"/>
+
+                                            <!-- 启用/禁用/删除按钮：仅在本地列表（Tab 0）中显示 -->
+                                            <StackPanel Orientation="Horizontal" Spacing="10"
+                                                        IsVisible="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).IsLocalTabSelected}">
+                                                <Button Command="{Binding $parent[UserControl].((vm:ModManagerViewModel)DataContext).ToggleModCommand}"
+                                                        CommandParameter="{Binding}"
+                                                        Width="80" HorizontalContentAlignment="Center">
+                                                    <Panel>
+                                                        <TextBlock Text="启用" IsVisible="{Binding IsDisabled}" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="禁用" IsVisible="{Binding !IsDisabled}" HorizontalAlignment="Center"/>
+                                                    </Panel>
+                                                </Button>
+                                                <Button Content="删除"
+                                                        Click="OnDeleteModClick"
+                                                        Tag="{Binding}"
+                                                        Background="DarkRed" Foreground="White"
+                                                        Width="80" HorizontalContentAlignment="Center"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- 展开箭头按钮 -->
+                                        <Button Grid.Column="2" 
+                                                Theme="{StaticResource RobustPlainIconBtn}"
+                                                Command="{Binding ToggleExpandCommand}"
+                                                Padding="10,0"
+                                                VerticalAlignment="Center">
+                                            <PathIcon Data="M1015.68 282.24l-77.44-81.28a28.16 28.16 0 0 0-40.32 0L508.16 596.48 128 200.96a27.52 27.52 0 0 0-40.32 0L8.96 283.52a30.72 30.72 0 0 0 0 42.88l478.72 497.28a28.16 28.16 0 0 0 40.32 0l64-64 426.24-432a31.36 31.36 0 0 0-2.56-45.44z"
+                                                      Foreground="{Binding IsExpanded, Converter={StaticResource BoolToColorConverter}}" 
+                                                      Width="18" Height="18">
+                                                <PathIcon.RenderTransform>
+                                                    <RotateTransform Angle="{Binding IsExpanded, Converter={StaticResource BoolToAngleConverter}}"/>
+                                                </PathIcon.RenderTransform>
+                                            </PathIcon>
+                                        </Button>
+                                    </Grid>
+
+                                    <!-- 展开后的详情区域 -->
+                                    <StackPanel IsVisible="{Binding IsExpanded}" Margin="0,15,0,0">
+                                        <Border Height="1" Background="#3E3E42" Margin="0,0,0,12"/>
+                                        <!-- 加载中提示 -->
+                                        <TextBlock Text="正在加载..."
+                                                   IsVisible="{Binding IsLoadingDescription}"
+                                                   Foreground="#555" FontSize="13" FontStyle="Italic"/>
+                                        <!-- 描述文本 -->
+                                        <TextBlock Text="{Binding Description}"
+                                                   IsVisible="{Binding !IsLoadingDescription}"
+                                                   Foreground="#A0A0A0" FontSize="13"
+                                                   TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            </Grid>
+        </DockPanel>
+    </Grid>
+</UserControl>

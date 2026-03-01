@@ -1,0 +1,36 @@
+# .gitignore for .NET (Avalonia)
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]in/
+[Oo]bj/
+PublishOutput/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+# System files
+Thumbs.db
+Desktop.ini
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet
+packages/
+*.nuget.props
+*.nuget.targets
+project.assets.json
+
+# Local config
+*.local

@@ -1,0 +1,47 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MdModManager.Views.DeleteConfirmDialog"
+        Title="确认删除"
+        Width="420" Height="180"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="White">
+
+    <Grid RowDefinitions="*, Auto" Margin="24">
+
+        <!-- 提示文本 -->
+        <TextBlock Grid.Row="0"
+                   Text="是否确认删除？该操作无法撤销。"
+                   TextWrapping="Wrap"
+                   FontSize="15"
+                   Foreground="#E0E0E0"
+                   VerticalAlignment="Center"/>
+
+        <!-- 底部按钮区 -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *, Auto, 10, Auto" Margin="0,16,0,0">
+
+            <!-- 左下角：不再提示复选框 -->
+            <CheckBox Grid.Column="0"
+                      x:Name="DontShowAgainCheckBox"
+                      Content="不再显示此提醒"
+                      Foreground="Gray"
+                      FontSize="13"/>
+
+            <!-- 右下角：取消 / 确认 -->
+            <Button Grid.Column="2"
+                    Content="取消"
+                    Width="80"
+                    HorizontalContentAlignment="Center"
+                    Background="#333333" Foreground="White"
+                    Click="OnCancelClick"/>
+
+            <Button Grid.Column="4"
+                    Content="确认删除"
+                    Width="90"
+                    HorizontalContentAlignment="Center"
+                    Background="#d4237a" Foreground="White"
+                    Click="OnConfirmClick"/>
+        </Grid>
+    </Grid>
+</Window>

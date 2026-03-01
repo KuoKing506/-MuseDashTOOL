@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:MdModManager.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="MdModManager.Views.MelonLoaderView"
+             x:DataType="vm:MelonLoaderViewModel">
+    <!-- 根节点改为Grid，方便分层 -->
+    <Grid RowDefinitions="Auto,*">
+        <!-- 顶部 MelonLoader 官方 Logo 改为类似于页面大标题的位置 -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Image Height="35" RenderOptions.BitmapInterpolationMode="HighQuality" Source="avares://MuseDashTOOL/Assets/ML_Icon.png" />
+                <Image Height="28" RenderOptions.BitmapInterpolationMode="HighQuality" Source="avares://MuseDashTOOL/Assets/ML_Text.png" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 内容区域 -->
+        <StackPanel Grid.Row="1" Spacing="20" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-60,0,0">
+        
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Center">
+                <TextBlock Text="当前版本: " FontSize="16" VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding CurrentVersionText}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock Text="可用版本" FontSize="16" HorizontalAlignment="Center"/>
+            <Panel Width="200" HorizontalAlignment="Center">
+                <ComboBox ItemsSource="{Binding Releases}" 
+                          SelectedItem="{Binding SelectedRelease}"
+                          IsVisible="{Binding !IsActionProgressing}"
+                          Width="200" HorizontalAlignment="Center"
+                          HorizontalContentAlignment="Center"
+                          Padding="32,0,0,0">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DisplayName}" HorizontalAlignment="Center"/>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+                
+                <ProgressBar Value="{Binding DownloadProgress}" 
+                             IsVisible="{Binding IsActionProgressing}"
+                             Foreground="#FF00FF"
+                             Background="#333333"
+                             ShowProgressText="True"
+                             Height="32" Width="200" CornerRadius="4" 
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Panel>
+
+            <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+                <Button Content="安装" 
+                        Command="{Binding InstallCommand}" 
+                        IsEnabled="{Binding !IsActionProgressing}"
+                        Background="#FF00FF" Foreground="White" Width="90" HorizontalContentAlignment="Center"/>
+                <Button Content="卸载" 
+                        Command="{Binding UninstallCommand}" 
+                        IsEnabled="{Binding !IsActionProgressing}"
+                        Background="DarkRed" Foreground="White" Width="90" HorizontalContentAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

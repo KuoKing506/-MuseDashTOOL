@@ -1,0 +1,47 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MdModManager.App"
+             xmlns:local="using:MdModManager"
+             RequestedThemeVariant="Dark">
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <Application.Resources>
+        <!-- 全局复选框粉色覆盖 -->
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#d4237a"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#e44b92"/>
+        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#bd1d6a"/>
+        
+        <!-- 全局滑动条粉色覆盖 -->
+        <SolidColorBrush x:Key="SliderTrackValueFill" Color="#d4237a" />
+        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#e44b92" />
+        <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#bd1d6a" />
+        <SolidColorBrush x:Key="SliderThumbBackground" Color="#d4237a" />
+        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#e44b92" />
+        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#bd1d6a" />
+
+        <!-- 全局滚动条粉色覆盖 -->
+        <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#d4237a" />
+        <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#e44b92" />
+        <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#bd1d6a" />
+        <SolidColorBrush x:Key="ScrollBarThumbBackground" Color="#d4237a" />
+        <SolidColorBrush x:Key="ScrollBarThumbBackgroundPointerOver" Color="#e44b92" />
+        <SolidColorBrush x:Key="ScrollBarThumbBackgroundPressed" Color="#bd1d6a" />
+
+        <!-- 全局动态背景画刷 (支持根据是否有自定义背景图动态切换) -->
+        <SolidColorBrush x:Key="CardBgBrush" Color="#242424" />
+        <SolidColorBrush x:Key="CardHoverBgBrush" Color="#2A2A2A" />
+        <SolidColorBrush x:Key="ModCardBgBrush" Color="#2D2D30" />
+        <SolidColorBrush x:Key="ControlBgBrush" Color="#2a2a2a" />
+        <SolidColorBrush x:Key="ControlHoverBgBrush" Color="#3a3a3a" />
+        <SolidColorBrush x:Key="ControlPressedBgBrush" Color="#4a4a4a" />
+
+        <ColorPaletteResources x:Key="Dark" Accent="#d4237a" RegionColor="#1E1E1E" ErrorText="Red" />
+    </Application.Resources>
+</Application>
