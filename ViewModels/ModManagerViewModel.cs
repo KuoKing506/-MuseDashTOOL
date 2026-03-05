@@ -5,10 +5,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Net.Http;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using MdModManager.Models;
 using MdModManager.Services;
+using MdModManager.Views;
 
 namespace MdModManager.ViewModels;
 
@@ -18,6 +21,11 @@ public partial class ModManagerViewModel : ObservableObject
     private readonly ILocalModService _localModService;
     private readonly IConfigService _configService;
     private readonly INotificationService _notificationService;
+    private readonly ModStagingService _stagingService;
+    private readonly INavigationService _navigationService;
+
+    // 后台定时器：检测游戏进程，游戏关闭后自动将暂存文件移入 Mods 文件夹
+    private Timer? _stagingWatcherTimer;
 
     [ObservableProperty]
     private ObservableCollection<LocalMod> _mods = new();
@@ -67,16 +75,112 @@ public partial class ModManagerViewModel : ObservableObject
     // 本地已安装的 FileName → Version 映射，用于下载列表版本比较
     private Dictionary<string, string> _installedVersions = new(StringComparer.OrdinalIgnoreCase);
 
+    // 游戏运行时请求删除的 mod 文件路径集合，游戏关闭后执行实际删除
+    private readonly HashSet<string> _pendingDeletePaths = new(StringComparer.OrdinalIgnoreCase);
+
     public ModManagerViewModel(
         IModCatalogService catalogService,
         ILocalModService localModService,
         IConfigService configService,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ModStagingService stagingService,
+        INavigationService navigationService)
     {
         _catalogService = catalogService;
         _localModService = localModService;
         _configService = configService;
         _notificationService = notificationService;
+        _stagingService = stagingService;
+        _navigationService = navigationService;
+    }
+
+    // ─── 游戏进程检测 ────────────────────────────────────────────────────────────
+    private static bool IsGameRunning() =>
+        Process.GetProcessesByName("MuseDash").Length > 0;
+
+    // ─── 后台定时器：每 2 秒检测游戏是否结束，结束后自动迁移暂存文件 ───────────
+    private void StartStagingWatcher()
+    {
+        _stagingWatcherTimer?.Dispose();
+        _stagingWatcherTimer = new Timer(async _ => await OnStagingWatcherTickAsync(), null,
+            TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(2));
+    }
+
+    private bool _wasGameRunning = false;
+
+    private async Task OnStagingWatcherTickAsync()
+    {
+        var gamePath = _configService.Config.GamePath;
+        if (string.IsNullOrEmpty(gamePath)) return;
+
+        bool running = IsGameRunning();
+
+        // 游戏刚刚关闭，且暂存目录有文件 → 执行迁移
+        if (_wasGameRunning && !running)
+        {
+            await FlushStagingToModsAsync(gamePath);
+        }
+
+        _wasGameRunning = running;
+        _stagingService.Refresh(gamePath);
+    }
+
+    private async Task FlushStagingToModsAsync(string gamePath)
+    {
+        var stagingPath = _stagingService.GetStagingPath(gamePath);
+        var modsPath = System.IO.Path.Combine(gamePath, "Mods");
+
+        // 1. 迁移暂存文件
+        int moved = 0;
+        if (System.IO.Directory.Exists(stagingPath))
+        {
+            System.IO.Directory.CreateDirectory(modsPath);
+            foreach (var file in System.IO.Directory.GetFiles(stagingPath, "*.dll"))
+            {
+                try
+                {
+                    var dest = System.IO.Path.Combine(modsPath, System.IO.Path.GetFileName(file));
+                    await Task.Run(() => System.IO.File.Move(file, dest, overwrite: true));
+                    moved++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[ModStaging] 迁移文件 {file} 失败: {ex.Message}");
+                }
+            }
+        }
+
+        // 2. 执行待删除的 mod
+        int deleted = 0;
+        var toDelete = _pendingDeletePaths.ToList();
+        foreach (var path in toDelete)
+        {
+            try
+            {
+                if (System.IO.File.Exists(path))
+                {
+                    await Task.Run(() => System.IO.File.Delete(path));
+                    deleted++;
+                }
+                _pendingDeletePaths.Remove(path);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ModStaging] 删除文件 {path} 失败: {ex.Message}");
+            }
+        }
+
+        _stagingService.Refresh(gamePath);
+
+        if (moved > 0 || deleted > 0)
+        {
+            var parts = new List<string>();
+            if (moved > 0) parts.Add($"{moved} 个暂存 Mod 已安装");
+            if (deleted > 0) parts.Add($"{deleted} 个 Mod 已删除");
+            _notificationService.ShowSuccess(string.Join("，", parts) + "！");
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+                await InitializeAsync());
+        }
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
@@ -86,6 +190,13 @@ public partial class ModManagerViewModel : ObservableObject
             // 读取游戏版本（用于兼容性判断），失败时为空串（所有 mod 视为兼容）
             var gamePath = _configService.Config.GamePath;
             
+            // 初始化 / 刷新暂存文件夹状态，并启动后台游戏检测定时器
+            if (!string.IsNullOrEmpty(gamePath))
+            {
+                _stagingService.EnsureAndRefresh(gamePath);
+                StartStagingWatcher();
+            }
+
             // 检查 Mods 文件夹是否存在
             if (!string.IsNullOrEmpty(gamePath))
             {
@@ -105,9 +216,15 @@ public partial class ModManagerViewModel : ObservableObject
             Console.WriteLine($"[兼容性] 读取到的游戏版本: '{_gameVersion}'");
 
             var remoteMods = await _catalogService.GetModsAsync(cancellationToken);
-            _allLocalMods = _localModService.GetLocalMods(remoteMods);
 
-            // 标记本地列表的兼容性
+            // 把暂存文件夹路径传给 GetLocalMods，一次调用同时扫描 Mods/ 和 Mods_Staging/
+            var stagingFolder = string.IsNullOrEmpty(gamePath)
+                ? null
+                : _stagingService.GetStagingPath(gamePath);
+            _allLocalMods = _localModService.GetLocalMods(remoteMods, stagingFolder);
+
+            // 标记本地列表的兼容性与检测配置文件
+            var userDataPath = string.IsNullOrEmpty(gamePath) ? null : Path.Combine(gamePath, "UserData");
             foreach (var m in _allLocalMods)
             {
                 var gv = m.RemoteInfo?.GameVersion;
@@ -115,17 +232,50 @@ public partial class ModManagerViewModel : ObservableObject
                     && !string.IsNullOrEmpty(gv)
                     && gv != "*"
                     && gv != _gameVersion;
+
+                // 检测配置文件 (UserData/*.cfg 或 UserData/*.xml 或 UserData/[ModName]/)
+                if (userDataPath != null && Directory.Exists(userDataPath))
+                {
+                    var nameWithoutExt = Path.GetFileNameWithoutExtension(m.FileName);
+                    var cfgPath = Path.Combine(userDataPath, nameWithoutExt + ".cfg");
+                    if (!File.Exists(cfgPath)) cfgPath = Path.Combine(userDataPath, nameWithoutExt + ".xml");
+
+                    if (File.Exists(cfgPath))
+                    {
+                        m.ConfigFilePath = cfgPath;
+                    }
+                    else
+                    {
+                        // 尝试寻找同名文件夹
+                        var folderPath = Path.Combine(userDataPath, nameWithoutExt);
+                        if (Directory.Exists(folderPath))
+                        {
+                            m.ConfigFilePath = folderPath;
+                        }
+                    }
+                }
             }
 
-            // FileName → LocalMod 映射（用于下载列表精确匹配判断）
+            // 将待删除的条目标记为 IsPendingDelete（用于 UI 红色显示）
+            foreach (var m in _allLocalMods)
+            {
+                if (!string.IsNullOrEmpty(m.FilePath) &&
+                    _pendingDeletePaths.Contains(m.FilePath))
+                {
+                    m.IsPendingDelete = true;
+                }
+            }
+
+
+            // FileName → LocalMod 映射（仅实际安装到 Mods/ 的条目，排除暂存和待删除）
             _installedByFileName = _allLocalMods
-                .Where(m => !string.IsNullOrEmpty(m.FilePath))
+                .Where(m => !string.IsNullOrEmpty(m.FilePath) && !m.IsStaged && !m.IsPendingDelete)
                 .GroupBy(m => System.IO.Path.GetFileName(m.FilePath), StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
 
-            // FileName -> Version 映射，用于下载列表中显示已安装版本
+            // FileName -> Version 映射，同样排除暂存和待删除
             _installedVersions = _allLocalMods
-                .Where(m => !string.IsNullOrEmpty(m.FilePath))
+                .Where(m => !string.IsNullOrEmpty(m.FilePath) && !m.IsStaged && !m.IsPendingDelete)
                 .GroupBy(m => System.IO.Path.GetFileName(m.FilePath), StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(g => g.Key, g => g.First().Version, StringComparer.OrdinalIgnoreCase);
 
@@ -325,8 +475,10 @@ public partial class ModManagerViewModel : ObservableObject
         {
             _dismissedUpdateKeys.Add(DismissKey(mod));
         }
+        RefreshList();
         // 通知 UI ShowUpdateBadge 已改变
         OnPropertyChanged(nameof(ShowUpdateBadge));
+        OnPropertyChanged(nameof(ShowDismissUpdateNoticeButton));
     }
 
     [RelayCommand]
@@ -356,15 +508,33 @@ public partial class ModManagerViewModel : ObservableObject
         if (SelectedTabIndex == 2 || string.IsNullOrEmpty(mod.FilePath)) return;
         try
         {
-            await _localModService.DeleteModAsync(mod);
-            _notificationService.ShowSuccess("删除成功");
+            if (IsGameRunning() && !mod.IsStaged)
+            {
+                // 游戏运行中且非暂存 Mod → 标记为待删除，游戏关闭后自动删除的
+                _pendingDeletePaths.Add(mod.FilePath);
+                _stagingService.Refresh(_configService.Config.GamePath);
+                _notificationService.ShowSuccess("将在游戏关闭后自动删除");
+                await InitializeAsync();
+            }
+            else
+            {
+                // 游戏未运行，或是暂存 Mod（未被游戏加载锁定） → 直接删除
+                await _localModService.DeleteModAsync(mod);
+                _notificationService.ShowSuccess("删除成功");
+                
+                if (mod.IsStaged)
+                {
+                    _stagingService.Refresh(_configService.Config.GamePath);
+                }
+                
+                await InitializeAsync();
+            }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"[ModManagerViewModel] DeleteModAsync({mod.Name}) 操作异常: {ex}");
             _notificationService.ShowFailure("删除失败", ex.Message);
         }
-        await InitializeAsync();
     }
 
     [RelayCommand]
@@ -402,7 +572,7 @@ public partial class ModManagerViewModel : ObservableObject
     }
 
     /// <summary>
-    /// 导入本地 Mod 文件 (.dll) 到游戏的 Mods 目录
+    /// 导入本地 Mod 文件 (.dll) 到游戏的 Mods 目录（游戏运行时暂存）
     /// </summary>
     /// <param name="sourcePath">源文件路径</param>
     public async Task ImportModFileAsync(string sourcePath)
@@ -416,19 +586,27 @@ public partial class ModManagerViewModel : ObservableObject
                 return;
             }
 
-            // 确保 Mods 文件夹存在
-            var modsFolderPath = System.IO.Path.Combine(gamePath, "Mods");
-            if (!System.IO.Directory.Exists(modsFolderPath))
-            {
-                System.IO.Directory.CreateDirectory(modsFolderPath);
-            }
-
             var fileName = System.IO.Path.GetFileName(sourcePath);
-            var targetPath = System.IO.Path.Combine(modsFolderPath, fileName);
 
-            // 异步复制文件，防止界面卡死
-            await Task.Run(() => System.IO.File.Copy(sourcePath, targetPath, true));
-            _notificationService.ShowSuccess("导入成功");
+            if (IsGameRunning())
+            {
+                // 游戏运行中 → 放入暂存文件夹
+                var stagingPath = _stagingService.GetStagingPath(gamePath);
+                System.IO.Directory.CreateDirectory(stagingPath);
+                var targetPath = System.IO.Path.Combine(stagingPath, fileName);
+                await Task.Run(() => System.IO.File.Copy(sourcePath, targetPath, true));
+                _stagingService.Refresh(gamePath);
+                _notificationService.ShowSuccess("已暂存，将在游戏关闭后自动安装");
+            }
+            else
+            {
+                // 游戏未运行 → 直接复制到 Mods 文件夹
+                var modsFolderPath = System.IO.Path.Combine(gamePath, "Mods");
+                System.IO.Directory.CreateDirectory(modsFolderPath);
+                var targetPath = System.IO.Path.Combine(modsFolderPath, fileName);
+                await Task.Run(() => System.IO.File.Copy(sourcePath, targetPath, true));
+                _notificationService.ShowSuccess("导入成功");
+            }
             
             // 重新初始化以刷新列表
             await InitializeAsync();
@@ -440,6 +618,28 @@ public partial class ModManagerViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private void OpenModConfig(LocalMod mod)
+    {
+        if (string.IsNullOrEmpty(mod.ConfigFilePath) || (!File.Exists(mod.ConfigFilePath) && !Directory.Exists(mod.ConfigFilePath)))
+        {
+            _notificationService.ShowFailure("跳转失败", "找不到配置文件或文件夹");
+            return;
+        }
+
+        _navigationService.RequestNavigateToConfig(mod.ConfigFilePath);
+    }
+
+    private bool IsDotNet6Installed()
+    {
+        var gamePath = _configService.Config.GamePath;
+        if (string.IsNullOrEmpty(gamePath)) return false;
+        
+        // 检查 MelonLoader 的 net6 运行时库是否存在
+        var net6Path = System.IO.Path.Combine(gamePath, "MelonLoader", "net6", "MelonLoader.dll");
+        return System.IO.File.Exists(net6Path);
+    }
+
     private async Task PerformDownloadAsync(ModInfo remoteInfo, bool isUpdate = false, LocalMod? localMod = null)
     {
         var fileName = !string.IsNullOrEmpty(remoteInfo.FileName)
@@ -447,6 +647,17 @@ public partial class ModManagerViewModel : ObservableObject
             : remoteInfo.DownloadLink.Replace("Mods/", "");
 
         if (string.IsNullOrEmpty(fileName)) return;
+
+        // 下载任何 mod 前检测 .NET 6 环境 (.NET 6 运行时本身的下载页除外)
+        if (fileName != "dotnet6-runtime-placeholder" && !IsDotNet6Installed())
+        {
+            var mainWindow = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop ? desktop.MainWindow as MainWindow : null;
+            if (mainWindow != null)
+            {
+                await mainWindow.ShowMessageBoxAsync("请先在mod列表顶部下载.net6运行环境！");
+                return;
+            }
+        }
 
         // 特殊处理 .NET 6 运行时下载：打开官方页面
         if (fileName == "dotnet6-runtime-placeholder")
@@ -471,8 +682,46 @@ public partial class ModManagerViewModel : ObservableObject
             return;
         }
 
-        var downloadUrl = $"https://gitee.com/lxymahatma/ModLinks/raw/dev/Mods/{fileName}";
-        var targetPath = System.IO.Path.Combine(gamePath, "Mods", fileName);
+        string downloadUrl;
+        if (remoteInfo.Source == "Euterpe")
+        {
+            // Euterpe 源：尝试解析 GitHub Release
+            if (string.IsNullOrEmpty(remoteInfo.HomePage) || !remoteInfo.HomePage.Contains("github.com"))
+            {
+                _notificationService.ShowInfo("该 Mod 仅提供仓库链接，请手动下载", 5000);
+                Process.Start(new ProcessStartInfo(remoteInfo.HomePage) { UseShellExecute = true });
+                return;
+            }
+
+            _notificationService.ShowInfo($"正在解析 {remoteInfo.Name} 的下载地址...", 3000);
+            var gitUrl = await ResolveGitHubReleaseUrlAsync(remoteInfo.HomePage, remoteInfo.FileName);
+            if (string.IsNullOrEmpty(gitUrl))
+            {
+                _notificationService.ShowInfo("未能解析到自动下载链接，正在打开仓库页面", 5000);
+                Process.Start(new ProcessStartInfo(remoteInfo.HomePage) { UseShellExecute = true });
+                return;
+            }
+
+            downloadUrl = gitUrl;
+            // 应用镜像加速
+            var mirror = _configService.Config.DownloadSource;
+            if (!string.IsNullOrEmpty(mirror) && mirror != "官方源")
+            {
+                if (mirror == "ghproxy.net") downloadUrl = $"https://ghproxy.net/{downloadUrl}";
+                else if (mirror == "moeyy.cn") downloadUrl = $"https://github.moeyy.xyz/{downloadUrl}";
+            }
+        }
+        else
+        {
+            // 默认 Gitee 源
+            downloadUrl = $"https://gitee.com/lxymahatma/ModLinks/raw/dev/Mods/{fileName}";
+        }
+
+        // 游戏运行时 → 下载后放入暂存文件夹
+        bool gameRunning = IsGameRunning();
+        var targetPath = gameRunning
+            ? System.IO.Path.Combine(_stagingService.GetStagingPath(gamePath), fileName)
+            : System.IO.Path.Combine(gamePath, "Mods", fileName);
 
         try
         {
@@ -480,25 +729,30 @@ public partial class ModManagerViewModel : ObservableObject
             var bytes = await client.GetByteArrayAsync(downloadUrl);
             System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(targetPath)!);
 
-            // 如果是更新，尝试删除旧文件
-            if (isUpdate && localMod != null && !string.IsNullOrEmpty(localMod.FilePath))
+            // 如果是更新，尝试删除旧文件（游戏未运行时才能直接删除）
+            if (isUpdate && localMod != null && !string.IsNullOrEmpty(localMod.FilePath) && !gameRunning)
             {
                 if (System.IO.File.Exists(localMod.FilePath))
                 {
-                    try
-                    {
-                        System.IO.File.Delete(localMod.FilePath);
-                    }
+                    try { System.IO.File.Delete(localMod.FilePath); }
                     catch (Exception deleteEx)
                     {
                         Console.WriteLine($"[ModManagerViewModel] 无法删除旧版本 Mod '{localMod.FilePath}': {deleteEx}");
-                        // 删除失败不中断下载，继续尝试覆盖或写入新文件
                     }
                 }
             }
 
             await System.IO.File.WriteAllBytesAsync(targetPath, bytes);
-            _notificationService.ShowSuccess(isUpdate ? "更新成功" : "下载成功");
+
+            if (gameRunning)
+            {
+                _stagingService.Refresh(gamePath);
+                _notificationService.ShowSuccess("已暂存，将在游戏关闭后自动安装");
+            }
+            else
+            {
+                _notificationService.ShowSuccess(isUpdate ? "更新成功" : "下载成功");
+            }
         }
         catch (Exception ex)
         {
@@ -507,5 +761,38 @@ public partial class ModManagerViewModel : ObservableObject
         }
 
         await InitializeAsync();
+    }
+
+    private async Task<string?> ResolveGitHubReleaseUrlAsync(string repoUrl, string targetFileName)
+    {
+        try
+        {
+            // 提取 owner/repo
+            var parts = repoUrl.TrimEnd('/').Split('/');
+            if (parts.Length < 2) return null;
+            var repo = $"{parts[^2]}/{parts[^1]}";
+
+            var apiUrl = $"https://api.github.com/repos/{repo}/releases/latest";
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("MdModManager/1.0");
+            
+            var response = await client.GetStringAsync(apiUrl);
+            using var doc = JsonDocument.Parse(response);
+            var assets = doc.RootElement.GetProperty("assets");
+
+            foreach (var asset in assets.EnumerateArray())
+            {
+                var name = asset.GetProperty("name").GetString();
+                if (name != null && (name.Equals(targetFileName, StringComparison.OrdinalIgnoreCase) || name.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return asset.GetProperty("browser_download_url").GetString();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[ModManagerViewModel] ResolveGitHubReleaseUrlAsync error: {ex.Message}");
+        }
+        return null;
     }
 }

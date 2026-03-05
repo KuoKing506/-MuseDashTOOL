@@ -38,6 +38,9 @@ public partial class ConfigManagerViewModel : ObservableObject
     [ObservableProperty]
     private bool _isUserDataMissing = false;
 
+    /// <summary>导航进入时预选的文件路径</summary>
+    public string? PreSelectedFilePath { get; set; }
+
     public bool HasSelectedFile => SelectedFile != null;
 
     [RelayCommand(AllowConcurrentExecutions = true)]
@@ -166,6 +169,24 @@ public partial class ConfigManagerViewModel : ObservableObject
                 ? "未找到任何配置文件（请确认游戏路径下有 UserData 文件夹）"
                 : $"共找到 {files.Count} 个配置文件";
             StatusMessage = _baselineStatus;
+
+            // 处理预选文件/文件夹逻辑
+            if (!string.IsNullOrEmpty(PreSelectedFilePath))
+            {
+                var targetFile = files.FirstOrDefault(f => f.FilePath.Equals(PreSelectedFilePath, System.StringComparison.OrdinalIgnoreCase));
+                if (targetFile != null)
+                {
+                    await SelectFileAsync(targetFile);
+                    // 展开包含该文件的所有父节点
+                    ExpandParentsRecursive(CfgNodes, targetFile.FilePath);
+                }
+                else
+                {
+                    // 如果不是具体文件，尝试作为文件夹处理 (仅展开)
+                    ExpandDirectoryRecursive(CfgNodes, PreSelectedFilePath);
+                }
+                PreSelectedFilePath = null; // 处理完即清空
+            }
         }
         catch (System.Exception ex)
         {
@@ -175,6 +196,62 @@ public partial class ConfigManagerViewModel : ObservableObject
         {
             IsLoading = false;
         }
+    }
+
+    private bool ExpandParentsRecursive(System.Collections.Generic.IEnumerable<CfgFolderNode> nodes, string targetPath)
+    {
+        bool found = false;
+        foreach (var node in nodes)
+        {
+            if (node.IsFileNode && node.FileItem?.FilePath == targetPath)
+            {
+                found = true;
+            }
+            else if (!node.IsFileNode)
+            {
+                if (ExpandParentsRecursive(node.Children, targetPath))
+                {
+                    node.IsExpanded = true;
+                    found = true;
+                }
+            }
+        }
+        return found;
+    }
+
+    private bool ExpandDirectoryRecursive(System.Collections.Generic.IEnumerable<CfgFolderNode> nodes, string targetDirPath)
+    {
+        bool found = false;
+        foreach (var node in nodes)
+        {
+            if (node.IsFileNode) continue;
+
+            // 检查该节点是否就是我们要找的目录
+            // 由于 ConfigManagerViewModel 解析时会将 UserData 后面的路径展平
+            // 我们需要根据节点里的子文件来推断其在磁盘上的物理对应文件夹
+            var firstFile = FindFirstFileNode(node);
+            if (firstFile?.FileItem != null)
+            {
+                var dir = System.IO.Path.GetDirectoryName(firstFile.FileItem.FilePath);
+                while (!string.IsNullOrEmpty(dir))
+                {
+                    if (dir.Equals(targetDirPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        node.IsExpanded = true;
+                        found = true;
+                        break;
+                    }
+                    dir = System.IO.Path.GetDirectoryName(dir);
+                }
+            }
+
+            if (!found && ExpandDirectoryRecursive(node.Children, targetDirPath))
+            {
+                node.IsExpanded = true;
+                found = true;
+            }
+        }
+        return found;
     }
 
     private CfgFolderNode GetOrAddDeepFolder(ObservableCollection<CfgFolderNode> currentCollection, string[] folderPath)

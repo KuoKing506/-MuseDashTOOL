@@ -1,0 +1,237 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:MdModManager.ViewModels"
+             x:Class="MdModManager.Views.TutorialView"
+             x:DataType="vm:TutorialViewModel">
+
+    <UserControl.Resources>
+        <!-- 基础透明按钮主体 -->
+        <ControlTheme x:Key="RobustPlainIconBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="RootBorder" Background="Transparent">
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.8"/>
+            </Style>
+            <Style Selector="^:pressed /template/ Border#RootBorder">
+                <Setter Property="Opacity" Value="0.6"/>
+            </Style>
+        </ControlTheme>
+
+        <!-- 文字链接按钮主题 -->
+        <ControlTheme x:Key="LinkTextBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Content}"
+                                      Background="Transparent"
+                                      BorderThickness="0"/>
+                </ControlTemplate>
+            </Setter>
+            <Style Selector="^:pointerover">
+                <Setter Property="Opacity" Value="0.7"/>
+            </Style>
+        </ControlTheme>
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="*">
+        <!-- ScrollViewer 明确设置垂直滚动可用，水平禁用，防止容器不闭合导致的滚动失败 -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Spacing="30" Margin="30,30,30,60" MaxWidth="1000" HorizontalAlignment="Stretch">
+                <!-- 标题 -->
+                <TextBlock Text="欢迎使用喵斯兔 (MuseDashTOOL)" 
+                           FontSize="28" FontWeight="Bold" 
+                           HorizontalAlignment="Center">
+                    <TextBlock.Foreground>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                            <GradientStop Color="#FF00FF" Offset="0"/>
+                            <GradientStop Color="#FF69B4" Offset="1"/>
+                        </LinearGradientBrush>
+                    </TextBlock.Foreground>
+                </TextBlock>
+
+                <Separator Background="{DynamicResource SvgIconBrush}" Opacity="0.3" Height="1"/>
+
+                <!-- 第一部分：自我介绍与社交链接 -->
+                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                    <TextBlock Text="你好我是苏子沫，关于喵斯兔的基本功能可以点击跳转作者B站主页看视频进行介绍" 
+                               HorizontalAlignment="Center" FontSize="15" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="25">
+                        <!-- B站入口 (再次更新图标) -->
+                        <Button Theme="{StaticResource RobustPlainIconBtn}" 
+                                Command="{Binding OpenUrlCommand}" 
+                                CommandParameter="https://space.bilibili.com/289883561?spm_id_from=333.1007.0.0">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <!-- 访客提供的简约小电视图标 -->
+                                <PathIcon Data="M306.005333 117.632L444.330667 256h135.296l138.368-138.325333a42.666667 42.666667 0 1 1 60.373333 60.373333l-78.037333 77.952L789.333333 256A149.333333 149.333333 0 0 1 938.666667 405.333333v341.333334a149.333333 149.333333 0 0 1-149.333334 149.333333h-554.666666A149.333333 149.333333 0 0 1 85.333333 746.666667v-341.333334A149.333333 149.333333 0 0 1 234.666667 256h88.96L245.632 177.962667a42.666667 42.666667 0 0 1 60.373333-60.373334zM789.333333 341.333333h-554.666666a64 64 0 0 0-63.701334 57.856L170.666667 405.333333v341.333334a64 64 0 0 0 57.856 63.701333L234.666667 810.666667h554.666666a64 64 0 0 0 63.701334-57.813334L853.333333 746.666667v-341.333334A64 64 0 0 0 789.333333 341.333333zM341.333333 469.333333a42.666667 42.666667 0 0 1 42.666667 42.666667v85.333333a42.666667 42.666667 0 1 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666666-42.666667z m341.333334 0a42.666667 42.666667 0 0 1 42.666666 42.666667v85.333333a42.666667 42.666667 0 1 1-85.333333 0v-85.333333a42.666667 42.666667 0 0 1 42.666667-42.666667z"
+                                          Foreground="#FF6699" Width="22" Height="22" VerticalAlignment="Center"/>
+                                <TextBlock Text="其实我叫苏子沫" FontSize="16" FontWeight="ExtraBold" FontFamily="Inter, Arial">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                            <GradientStop Color="#FF00FF" Offset="0"/>
+                                            <GradientStop Color="#FF69B4" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- GitHub 入口 -->
+                        <Button Theme="{StaticResource RobustPlainIconBtn}" 
+                                Command="{Binding OpenUrlCommand}" 
+                                CommandParameter="https://github.com/KuoKing506/-MuseDashTOOL">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <PathIcon Data="M12 2C6.477 2 2 6.477 2 12c0 4.419 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.577.688.48C19.138 20.161 22 16.418 22 12c0-5.523-4.477-10-10-10z" 
+                                          Foreground="#FF6699" Width="20" Height="20" VerticalAlignment="Center"/>
+                                <TextBlock Text="KuoKing506" FontSize="16" FontWeight="ExtraBold" FontFamily="Inter, Arial">
+                                    <TextBlock.Foreground>
+                                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                            <GradientStop Color="#FF00FF" Offset="0"/>
+                                            <GradientStop Color="#FF69B4" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </TextBlock.Foreground>
+                                </TextBlock>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 第二部分：联系与群组 (添加点击复制功能) -->
+                <Border Background="{DynamicResource CardBgBrush}" CornerRadius="12" Padding="20">
+                    <StackPanel Spacing="10">
+                        <WrapPanel Orientation="Horizontal">
+                            <TextBlock FontSize="15" Foreground="{DynamicResource ThemeTextMainBrush}" Text="如果你遇到了某些本篇教程之外的问题，可以私信主播B站，或者加入B站"/>
+                            <Button Theme="{StaticResource LinkTextBtn}" 
+                                    Command="{Binding OpenUrlCommand}" 
+                                    CommandParameter="https://space.bilibili.com/130793282?spm_id_from=333.1387.follow.user_card.click">
+                                <TextBlock FontSize="15" FontWeight="Bold" Foreground="#FF6699" Text="GreenHub" TextDecorations="Underline"/>
+                            </Button>
+                            <TextBlock FontSize="15" Foreground="{DynamicResource ThemeTextMainBrush}" Text="的谱面群 "/>
+                            <Button Theme="{StaticResource LinkTextBtn}" 
+                                    Command="{Binding CopyTextCommand}" 
+                                    CommandParameter="516968978"
+                                    ToolTip.Tip="点击复制群号">
+                                <TextBlock FontSize="15" FontWeight="Bold" Foreground="#FF6699" Text="516968978" TextDecorations="Underline"/>
+                            </Button>
+                            <TextBlock FontSize="15" Foreground="{DynamicResource ThemeTextMainBrush}" Text="（非常推荐）"/>
+                        </WrapPanel>
+                        <TextBlock FontSize="15" Foreground="{DynamicResource ThemeTextMainBrush}" TextWrapping="Wrap"
+                                   Text="可以查看群文档解决你大部分的问题，或者在群里提问。这个群还有很多mdmc上没有的优质谱面"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- 正文小节 -->
+                <StackPanel Spacing="25">
+                    <!-- 游玩前准备 (添加粉色跳转链接) -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ 游玩前的准备" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <WrapPanel Orientation="Horizontal">
+                            <TextBlock Text="如果你要游玩自制谱以及其他的mod，首先先确保你的电脑安装了.net6（少数人会缺少C++，缺少C++" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                            <Button Theme="{StaticResource LinkTextBtn}" 
+                                    Command="{Binding OpenUrlCommand}" 
+                                    CommandParameter="https://wwatr.lanzout.com/iBtPf3jv3vtc">
+                                <TextBlock Text="点这里下载安装" Foreground="#FF6699" TextDecorations="Underline"/>
+                            </Button>
+                            <TextBlock Text=" 密码g20v）" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        </WrapPanel>
+                        <TextBlock TextWrapping="Wrap" LineHeight="22" Foreground="{DynamicResource ThemeTextMainBrush}"
+                                   Text="如果你没有魔法，请在下载melonloader之后把两个依赖的zip文件提前放入：游戏安装位置/MelonLoader/Dependencies/Il2CppAssemblyGenerator"/>
+                        <WrapPanel Orientation="Horizontal">
+                            <TextBlock Text="依赖下载地址：" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                            <Button Theme="{StaticResource LinkTextBtn}" 
+                                    Command="{Binding OpenUrlCommand}" 
+                                    CommandParameter="https://wwatr.lanzout.com/irEqR3jv3ppc">
+                                <TextBlock Text="依赖 1" Foreground="#FF6699" TextDecorations="Underline"/>
+                            </Button>
+                            <TextBlock Text=" | " Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                            <Button Theme="{StaticResource LinkTextBtn}" 
+                                    Command="{Binding OpenUrlCommand}" 
+                                    CommandParameter="https://wwatr.lanzout.com/izYMS3jn73ja">
+                                <TextBlock Text="依赖 2" Foreground="#FF6699" TextDecorations="Underline"/>
+                            </Button>
+                        </WrapPanel>
+                        <TextBlock Text="不要手动解压！不要手动解压！直接启动游戏即可！" FontWeight="Bold" Foreground="#FF4444" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                        <TextBlock Text="这样可以在你第一次打开游戏时节省大量的时间" HorizontalAlignment="Center" Foreground="{DynamicResource ThemeTextSubBrush}"/>
+                    </StackPanel>
+
+                    <!-- Mod管理 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ Mod管理界面" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <TextBlock Text="• 在本地列表，如果mod支持配置文件的修改，那么在启用/禁用按键左边会有一个齿轮图标，点击后会跳转到配置文件修改界面" TextWrapping="Wrap" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="注意：mod只有在启动过一次之后才会自动生成配置文件" FontSize="13" Foreground="#FF6699" Margin="24,0,0,0"/>
+                        <TextBlock Text="• 更新列表的mod可以点击“下载”按键右边的小铃铛来不再提醒" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 搜索框输入了内容之后，右键放大镜图标可以一键清除输入框的内容" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 可以直接拖入mod文件，而不是一定要使用“导入”按键" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    </StackPanel>
+
+                    <!-- 谱面管理 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ 谱面管理界面" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <TextBlock Text="• 谱名过长可以在设置打开滚动显示" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 搜索框输入了内容之后，右键放大镜图标可以一键清除输入框的内容" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 可以直接拖入mdm文件，而不是一定要使用“导入”按键" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    </StackPanel>
+
+                    <!-- 谱面下载 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ 谱面下载界面" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <TextBlock Text="• 搜索框输入内容之后，点击右边出现的“清除”可以清空输入框内容" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    </StackPanel>
+
+                    <!-- 配置文件 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ 配置文件界面" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <TextBlock Text="• 直接拖入cfg文件，而不是一定要使用“导入”按键" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 右侧编辑面板的文本可以部分删除，只需要点击叉按键即可" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 右键双击文件名称可以直接删除配置文件" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 修改后记得点击右上角保存" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    </StackPanel>
+
+                    <!-- 其他 -->
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="■ MelonLoader管理/设置" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource SvgIconBrush}"/>
+                        <TextBlock Text="• 下载速度太慢？可以去设置调节下载源" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 点击“调整界面样式”可以进入高度个性化自定义" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                        <TextBlock Text="• 右键导入图片按键可以删除导入的图片" Foreground="{DynamicResource ThemeTextMainBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <Separator Background="{DynamicResource SvgIconBrush}" Opacity="0.3" Height="1"/>
+
+                <!-- 结束语 -->
+                <StackPanel Spacing="15" HorizontalAlignment="Center">
+                    <TextBlock Text="如果你忘记了某些操作，你可以随时右键左上角的“喵斯兔”标题来重新打开" 
+                               Foreground="{DynamicResource ThemeTextSubBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="遇到问题可以左键“喵斯兔”，把生成在桌面的日志复制来私信" 
+                               Foreground="{DynamicResource ThemeTextSubBrush}" HorizontalAlignment="Center"/>
+                               
+                    <TextBlock Text="祝游戏愉快！" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,15,0,30">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#FF00FF" Offset="0"/>
+                                <GradientStop Color="#FF69B4" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

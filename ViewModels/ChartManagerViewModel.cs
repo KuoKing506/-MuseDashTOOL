@@ -86,12 +86,6 @@ public partial class ChartManagerViewModel : ObservableObject, IDisposable
         var charts = _chartService.LoadCharts(gamePath);
         foreach (var chart in charts)
         {
-            if (!string.IsNullOrEmpty(chart.FilePath) && 
-                _downloadManagerService.SessionDownloadedFiles.Contains(System.IO.Path.GetFullPath(chart.FilePath)))
-            {
-                chart.IsNewDownload = true;
-            }
-
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 _allCharts.Add(chart);
@@ -140,17 +134,40 @@ public partial class ChartManagerViewModel : ObservableObject, IDisposable
     private void PlayDemo(ChartInfo chart)
     {
         var stream = _chartService.OpenDemoStream(chart);
-        if (stream == null) return;
+        if (stream == null)
+        {
+            // 该谱面文件内没有音频文件
+            StatusMessage = $"《{chart.Name}》没有试听文件";
+            return;
+        }
 
         try
         {
-            var vorbisReader = new VorbisWaveReader(stream);
+            var ext = System.IO.Path.GetExtension(chart.DemoEntryName ?? "").ToLowerInvariant();
+
+            // 根据文件扩展名选择解码器
+            IWaveProvider waveProvider;
+            if (ext == ".ogg")
+            {
+                waveProvider = new VorbisWaveReader(stream);
+            }
+            else if (ext == ".mp3")
+            {
+                waveProvider = new Mp3FileReader(stream);
+            }
+            else
+            {
+                // .wav 或其他由 WaveFileReader 支持的格式
+                waveProvider = new WaveFileReader(stream);
+            }
+
             _waveOut = new WaveOutEvent();
-            _waveOut.Init(vorbisReader);
+            _waveOut.Init(waveProvider);
             _waveOut.Volume = (float)_configService.Config.ChartPreviewVolume;
 
             _stopCts = new CancellationTokenSource();
             var cts = _stopCts;
+            var provider = waveProvider; // capture for lambda
 
             _waveOut.PlaybackStopped += (_, _) =>
             {
@@ -162,7 +179,7 @@ public partial class ChartManagerViewModel : ObservableObject, IDisposable
                         if (_playingChart == chart) _playingChart = null;
                     });
                 }
-                vorbisReader.Dispose();
+                if (provider is IDisposable d) d.Dispose();
                 stream.Dispose();
             };
 
@@ -173,6 +190,7 @@ public partial class ChartManagerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             Console.WriteLine($"[ChartManager] Playback error: {ex.Message}");
+            StatusMessage = $"试听出错: {ex.Message}";
             stream.Dispose();
         }
     }

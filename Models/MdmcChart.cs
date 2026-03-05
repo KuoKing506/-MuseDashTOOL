@@ -55,9 +55,13 @@ public partial class MdmcChart : ObservableObject
     [JsonPropertyName("likesCount")]
     public int LikesCount { get; set; }
 
+    [JsonPropertyName("uploadedAt")]
+    public DateTime? UploadedAt { get; set; }
+
     // Derived URLs
     public string CoverUrl => $"https://cdn.mdmc.moe/charts/{Id}/cover.png";
     public string DemoUrl  => $"https://cdn.mdmc.moe/charts/{Id}/demo.ogg";
+    public string DemoMp3Url => $"https://cdn.mdmc.moe/charts/{Id}/demo.mp3";
     public string DownloadUrl => $"https://api.mdmc.moe/v3/charts/{Id}/download";
 
     /// <summary>副标题：曲 + 谱</summary>

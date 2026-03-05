@@ -46,6 +46,9 @@ public class ModInfo
 
     [JsonPropertyName("sha256")]
     public string SHA256 { get; set; } = "";
+
+    /// <summary>来源：Gitee / Euterpe</summary>
+    public string Source { get; set; } = "Gitee";
 }
 
 public class ModLinks

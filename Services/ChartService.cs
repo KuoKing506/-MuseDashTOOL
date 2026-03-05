@@ -21,13 +21,35 @@ public class ChartService : IChartService
     private static readonly HashSet<string> AudioExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".ogg", ".wav", ".mp3", ".flac" };
 
+    /// <summary>
+    /// Filenames present at app startup. Files added after startup are "new".
+    /// null = snapshot not yet taken.
+    /// </summary>
+    private static HashSet<string>? _snapshotFilenames = null;
+    private static readonly object _snapshotLock = new();
+
     public IEnumerable<ChartInfo> LoadCharts(string gamePath)
     {
         var albumsDir = Path.Combine(gamePath, "Custom_Albums");
         if (!Directory.Exists(albumsDir))
             yield break;
 
-        foreach (var file in Directory.EnumerateFiles(albumsDir, "*.mdm"))
+        var allFiles = Directory.GetFiles(albumsDir, "*.mdm");
+
+        // Take the startup snapshot on the very first call, then keep it forever
+        bool takeSnapshot = false;
+        lock (_snapshotLock)
+        {
+            if (_snapshotFilenames == null)
+            {
+                takeSnapshot = true;
+                _snapshotFilenames = new HashSet<string>(
+                    allFiles.Select(Path.GetFileName)!,
+                    StringComparer.OrdinalIgnoreCase);
+            }
+        }
+
+        foreach (var file in allFiles)
         {
             ChartInfo? info = null;
             try
@@ -40,7 +62,15 @@ public class ChartService : IChartService
             }
 
             if (info != null)
+            {
+                // Mark as new if it wasn't in the startup snapshot
+                if (!takeSnapshot &&
+                    !_snapshotFilenames!.Contains(Path.GetFileName(file)))
+                {
+                    info.IsNewDownload = true;
+                }
                 yield return info;
+            }
         }
     }
 
@@ -65,6 +95,7 @@ public class ChartService : IChartService
                 using var stream = entry.Open();
                 using var ms = new MemoryStream();
                 stream.CopyTo(ms);
+                ms.Position = 0;
                 ms.Position = 0;
                 chart.CoverImage = new Bitmap(ms);
             }

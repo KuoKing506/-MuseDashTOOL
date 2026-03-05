@@ -115,10 +115,9 @@
             <Setter Property="BorderBrush" Value="#5a5a5a"/>
         </Style>
 
-        <!-- 排序按钮 Active 状态 -->
         <Style Selector="Button.SortBtn.Active">
-            <Setter Property="Foreground" Value="#d4237a"/>
-            <Setter Property="BorderBrush" Value="#d4237a"/>
+            <Setter Property="Foreground" Value="{DynamicResource SvgIconBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource SvgIconBrush}"/>
             <Setter Property="FontWeight" Value="Bold"/>
         </Style>
     </UserControl.Styles>
@@ -136,7 +135,7 @@
                         </LinearGradientBrush>
                     </TextBlock.Foreground>
                 </TextBlock>
-                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#888888"/>
+                <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="{DynamicResource ThemeTextSubBrush}"/>
             </StackPanel>
 
         </Grid>
@@ -159,7 +158,7 @@
                     <Button Command="{Binding ClearSearchCommand}"
                             IsVisible="{Binding SearchText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                             Theme="{StaticResource RobustPlainIconBtn}" Margin="0,0,10,0">
-                        <TextBlock Text="清空" FontSize="14" VerticalAlignment="Center" Foreground="#d4237a"/>
+                        <TextBlock Text="清空" FontSize="14" VerticalAlignment="Center" Foreground="{DynamicResource SvgIconBrush}"/>
                     </Button>
                 </TextBox.InnerRightContent>
             </TextBox>
@@ -193,11 +192,11 @@
                         <!-- 降序 (默认) -->
                         <PathIcon IsVisible="{Binding !IsAscending}"
                                   Data="M843.84 690.368V256.32a31.488 31.488 0 0 0-9.152-22.848 32.192 32.192 0 0 0-22.912-9.472 32.512 32.512 0 0 0-32 32.32v434.048l-128.192-126.72a31.552 31.552 0 0 0-45.44 0 31.488 31.488 0 0 0 0 44.928l181.312 179.328a31.552 31.552 0 0 0 22.4 9.536 32.896 32.896 0 0 0 23.04-8.32l181.376-179.2a30.912 30.912 0 0 0 0-45.056 32.192 32.192 0 0 0-45.504 0l-124.928 125.44zM32 730.88h512.512c17.728 0 32.064 14.208 32.064 31.68a31.872 31.872 0 0 1-32 31.68H32a31.872 31.872 0 0 1-32-31.68c0-17.472 14.336-31.68 32-31.68z m0-253.44h320.32c17.728 0 32 14.208 32 31.68a31.872 31.872 0 0 1-32 31.68H32.064A31.872 31.872 0 0 1 0 509.12c0-17.472 14.336-31.68 32-31.68zM544.576 224H32.064c-17.728 0-32 14.208-32 31.68s14.272 31.68 32 31.68h512.512c17.728 0 32-14.208 32-31.68a31.872 31.872 0 0 0-32-31.68z"
-                                  Foreground="#d4237a" Width="20" Height="20"/>
+                                  Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
                         <!-- 升序 -->
                         <PathIcon IsVisible="{Binding IsAscending}"
                                   Data="M771.104 331.584v435.968a30.944 30.944 0 0 1-9.6 22.912c-6.304 6.08-14.944 9.536-24 9.536-18.624-0.32-33.568-14.784-33.568-32.448V331.584L569.632 458.88a33.792 33.792 0 0 1-23.84 9.664c-9.024 0-17.632-3.488-23.872-9.664a31.008 31.008 0 0 1-9.92-22.592c0-8.512 3.584-16.64 9.92-22.592L712 233.568c6.176-6.08 14.656-9.504 23.52-9.536 8.896-0.32 17.568 2.624 24.192 8.256l190.08 180.128A30.4 30.4 0 0 1 960 435.008a30.4 30.4 0 0 1-10.24 22.592 34.56 34.56 0 0 1-23.84 9.408 34.56 34.56 0 0 1-23.84-9.408L771.104 331.584zM88.864 736h398.24c13.76 0 24.896 14.176 24.896 31.68 0 17.504-11.136 31.68-24.896 31.68H88.896C75.136 799.36 64 785.184 64 767.68 64 750.176 75.136 736 88.896 736z m1.792-256h266.688c14.72 0 26.656 14.176 26.656 31.68 0 17.504-11.936 31.68-26.656 31.68H90.656C75.936 543.36 64 529.184 64 511.68 64 494.176 75.936 480 90.656 480z m396.48-256H88.864C75.136 224 64 238.176 64 255.68c0 17.504 11.136 31.68 24.896 31.68h398.208c13.76 0 24.896-14.176 24.896-31.68 0-17.504-11.136-31.68-24.896-31.68z"
-                                  Foreground="#d4237a" Width="20" Height="20"/>
+                                  Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
                     </Panel>
                 </Button>
             </StackPanel>
@@ -235,7 +234,7 @@
                     <ItemsControl ItemsSource="{Binding Charts}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <UniformGrid Columns="3" HorizontalAlignment="Stretch"/>
+                                <UniformGrid Columns="4" HorizontalAlignment="Stretch"/>
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -253,7 +252,9 @@
                                         <!-- 封面图区域 -->
                                         <Border Grid.Row="0" Height="170" ClipToBounds="True" CornerRadius="10,10,0,0">
                                             <Panel>
-                                                <Border Background="#333333">
+                                                <Border Background="#333333"
+                                                        CornerRadius="10,10,0,0"
+                                                        IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNull}}">
                                                     <TextBlock Text="🎵" FontSize="56" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#555555"/>
                                                 </Border>
                                                 <Image Source="{Binding CoverImage}" IsVisible="{Binding CoverImage, Converter={x:Static ObjectConverters.IsNotNull}}" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -262,7 +263,7 @@
                                                 </Border>
                                                 <Border Background="#cc000000" CornerRadius="4" Padding="6,2" Margin="0,0,6,6" HorizontalAlignment="Right" VerticalAlignment="Bottom">
                                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <TextBlock Text="♥" FontSize="11" Foreground="#d4237a" VerticalAlignment="Center"/>
+                                                        <TextBlock Text="♥" FontSize="11" Foreground="{DynamicResource SvgIconBrush}" VerticalAlignment="Center"/>
                                                         <TextBlock Text="{Binding LikesCount}" FontSize="11" Foreground="White" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Border>
@@ -277,27 +278,27 @@
                                                                   HighlightText="{Binding Title}"
                                                                   SearchText="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).SearchText}"
                                                                   FontSize="14" FontWeight="Bold"
-                                                                  Foreground="White"
+                                                                  Foreground="{DynamicResource ThemeTextMainBrush}"
                                                                   Height="20"
                                                                   IsScrollingEnabled="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).EnableMarquee}"
                                                                   ToolTip.Tip="{Binding Title}"/>
-                                            <TextBlock IsVisible="{Binding SubInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontSize="11" Foreground="#888888" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SubInfo}" helpers:TextBlockHelper.HighlightText="{Binding SubInfo}" helpers:TextBlockHelper.SearchText="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).SearchText}"/>
+                                            <TextBlock IsVisible="{Binding SubInfo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontSize="11" Foreground="{DynamicResource ThemeTextSubBrush}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding SubInfo}" helpers:TextBlockHelper.HighlightText="{Binding SubInfo}" helpers:TextBlockHelper.SearchText="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).SearchText}"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,2,0,0" Spacing="8" MinHeight="16">
                                                 <TextBlock Text="{Binding Bpm, StringFormat='BPM: \{0\}'}" IsVisible="{Binding Bpm, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" FontSize="11" Foreground="#666666" VerticalAlignment="Center"/>
                                                 <ItemsControl ItemsSource="{Binding DifficultyLabels}" VerticalAlignment="Center">
                                                     <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="3"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate><DataTemplate><Border Background="#331a3a1a" CornerRadius="3" Padding="4,1"><TextBlock Text="{Binding}" FontSize="10" Foreground="#d4237a"/></Border></DataTemplate></ItemsControl.ItemTemplate>
+                                                    <ItemsControl.ItemTemplate><DataTemplate><Border Background="#331a3a1a" CornerRadius="3" Padding="4,1"><TextBlock Text="{Binding}" FontSize="10" Foreground="{DynamicResource SvgIconBrush}"/></Border></DataTemplate></ItemsControl.ItemTemplate>
                                                 </ItemsControl>
                                             </StackPanel>
                                             <Grid ColumnDefinitions="*,*" Margin="0,6,0,0">
                                                 <Button Grid.Column="0" Theme="{StaticResource RobustIconBtn}" HorizontalAlignment="Center" Command="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).TogglePreviewCommand}" CommandParameter="{Binding}" ToolTip.Tip="试听 / 停止">
                                                     <Panel>
-                                                        <PathIcon IsVisible="{Binding !IsPlaying}" Data="M896 512L128 1024V0z" Foreground="#d4237a" Width="20" Height="20"/>
-                                                        <PathIcon IsVisible="{Binding IsPlaying}" Data="M722.9375 933.875H301.0625a210.9375 210.9375 0 0 1-210.9375-210.9375V301.0625a210.9375 210.9375 0 0 1 210.9375-210.9375h421.875a210.9375 210.9375 0 0 1 210.9375 210.9375v421.875a210.9375 210.9375 0 0 1-210.9375 210.9375z" Foreground="#d4237a" Width="20" Height="20"/>
+                                                        <PathIcon IsVisible="{Binding !IsPlaying}" Data="M896 512L128 1024V0z" Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
+                                                        <PathIcon IsVisible="{Binding IsPlaying}" Data="M722.9375 933.875H301.0625a210.9375 210.9375 0 0 1-210.9375-210.9375V301.0625a210.9375 210.9375 0 0 1 210.9375-210.9375h421.875a210.9375 210.9375 0 0 1 210.9375 210.9375v421.875a210.9375 210.9375 0 0 1-210.9375 210.9375z" Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
                                                     </Panel>
                                                 </Button>
                                                 <Button Grid.Column="1" Theme="{StaticResource RobustIconBtn}" HorizontalAlignment="Center" Command="{Binding $parent[UserControl].((vm:ChartDownloadViewModel)DataContext).DownloadChartCommand}" CommandParameter="{Binding}" ToolTip.Tip="下载到 Custom_Albums">
-                                                    <PathIcon Data="M498.347 824.32l-296.96-296.96c-11.947-11.947-3.414-34.133 13.653-34.133h160.427c11.946 0 20.48-8.534 20.48-20.48V54.613c0-11.946 8.533-20.48 20.48-20.48h189.44c11.946 0 20.48 8.534 20.48 20.48v418.134c0 11.946 8.533 20.48 20.48 20.48h160.426c18.774 0 27.307 22.186 13.654 34.133L525.653 824.32c-6.826 6.827-20.48 6.827-27.306 0zM916.48 989.867H107.52c-18.773 0-35.84-15.36-35.84-35.84 0-18.774 15.36-35.84 35.84-35.84h810.667c18.773 0 35.84 15.36 35.84 35.84-1.707 20.48-17.067 35.84-37.547 35.84z" Foreground="#d4237a" Width="20" Height="20"/>
+                                                    <PathIcon Data="M498.347 824.32l-296.96-296.96c-11.947-11.947-3.414-34.133 13.653-34.133h160.427c11.946 0 20.48-8.534 20.48-20.48V54.613c0-11.946 8.533-20.48 20.48-20.48h189.44c11.946 0 20.48 8.534 20.48 20.48v418.134c0 11.946 8.533 20.48 20.48 20.48h160.426c18.774 0 27.307 22.186 13.654 34.133L525.653 824.32c-6.826 6.827-20.48 6.827-27.306 0zM916.48 989.867H107.52c-18.773 0-35.84-15.36-35.84-35.84 0-18.774 15.36-35.84 35.84-35.84h810.667c18.773 0 35.84 15.36 35.84 35.84-1.707 20.48-17.067 35.84-37.547 35.84z" Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
                                                 </Button>
                                             </Grid>
                                         </StackPanel>

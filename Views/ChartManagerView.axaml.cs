@@ -19,6 +19,25 @@ public partial class ChartManagerView : UserControl
         AddHandler(DragDrop.DropEvent, Drop);
     }
     
+    private void OnBackgroundPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        topLevel?.FocusManager?.ClearFocus();
+    }
+    
+    private void OnSearchIconPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(sender as Avalonia.Visual);
+        if (point.Properties.IsRightButtonPressed)
+        {
+            if (DataContext is ChartManagerViewModel vm)
+            {
+                vm.ClearSearchCommand.Execute(null);
+            }
+            e.Handled = true;
+        }
+    }
+    
     private void DragOver(object? sender, DragEventArgs e)
     {
 #pragma warning disable CS0618

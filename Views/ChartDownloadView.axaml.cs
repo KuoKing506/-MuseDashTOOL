@@ -22,8 +22,11 @@ public partial class ChartDownloadView : UserControl
     {
         if (sender is ScrollViewer scrollViewer && DataContext is ChartDownloadViewModel vm)
         {
-            // 如果垂直偏移量 + 视口高度 接近 总体高度（例如在 100 像素内），则触发加载
-            var threshold = 100;
+            // 传给 VM 进行内存管理
+            vm.UpdateScrollPosition(scrollViewer.Offset.Y);
+
+            // 如果垂直偏移量 + 视口高度 接近 总体高度（例如在 200 像素内），则触发加载
+            var threshold = 200;
             if (scrollViewer.Offset.Y + scrollViewer.Viewport.Height >= scrollViewer.Extent.Height - threshold)
             {
                 if (vm.LoadNextPageCommand.CanExecute(null))
@@ -43,6 +46,25 @@ public partial class ChartDownloadView : UserControl
             && DataContext is ChartDownloadViewModel vm)
         {
             vm.SelectedSortIndex = idx;
+        }
+    }
+
+    private void OnBackgroundPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        var topLevel = TopLevel.GetTopLevel(this);
+        topLevel?.FocusManager?.ClearFocus();
+    }
+    
+    private void OnSearchIconPointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        var point = e.GetCurrentPoint(sender as Avalonia.Visual);
+        if (point.Properties.IsRightButtonPressed)
+        {
+            if (DataContext is ChartDownloadViewModel vm)
+            {
+                vm.ClearSearchCommand.Execute(null);
+            }
+            e.Handled = true;
         }
     }
 }

@@ -10,7 +10,7 @@ namespace MdModManager.Services;
 
 public interface ILocalModService
 {
-    List<LocalMod> GetLocalMods(List<ModInfo> remoteMods);
+    List<LocalMod> GetLocalMods(List<ModInfo> remoteMods, string? stagingPath = null);
     Task<string> ReadGameVersionAsync(string gamePath);
     Task DisableModAsync(LocalMod mod);
     Task EnableModAsync(LocalMod mod);
@@ -26,37 +26,55 @@ public class LocalModService : ILocalModService
         _configService = configService;
     }
 
-    public List<LocalMod> GetLocalMods(List<ModInfo> remoteMods)
+    public List<LocalMod> GetLocalMods(List<ModInfo> remoteMods, string? stagingPath = null)
     {
         var gamePath = _configService.Config.GamePath;
         if (string.IsNullOrEmpty(gamePath))
-        {
             return new List<LocalMod>();
-        }
 
         var modsFolderPath = Path.Combine(gamePath, "Mods");
         if (!Directory.Exists(modsFolderPath))
-        {
             return new List<LocalMod>();
-        }
 
         var result = new List<LocalMod>();
-        var files = Directory.GetFiles(modsFolderPath);
 
-        foreach (var file in files)
+        // --- 扫描正式 Mods 文件夹 ---
+        foreach (var file in Directory.GetFiles(modsFolderPath))
         {
             var ext = Path.GetExtension(file).ToLowerInvariant();
-            if (ext != ".dll" && ext != ".disabled")
-            {
-                continue;
-            }
+            if (ext != ".dll" && ext != ".disabled") continue;
 
             var localMod = ParseModFile(file);
             if (localMod != null)
             {
-                // 使用多策略匹配：优先精确名字，再按文件名模糊匹配（含作者相似度校验）
                 localMod.RemoteInfo = FindRemoteMatch(localMod.Name, localMod.Author, localMod.FilePath, remoteMods);
                 result.Add(localMod);
+            }
+        }
+
+        // --- 扫描暂存文件夹（Mods_Staging） ---
+        if (!string.IsNullOrEmpty(stagingPath) && Directory.Exists(stagingPath))
+        {
+            // 收集已有文件名，防止重复
+            var existingFileNames = new HashSet<string>(
+                result.Select(m => Path.GetFileName(m.FilePath)),
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var file in Directory.GetFiles(stagingPath, "*.dll"))
+            {
+                if (existingFileNames.Contains(Path.GetFileName(file))) continue;
+
+                var localMod = ParseModFile(file);
+                if (localMod != null)
+                {
+                    localMod.IsStaged = true;
+                    // 版本号标注"(暂存)"
+                    if (!string.IsNullOrEmpty(localMod.Version))
+                        localMod.Version += " (暂存)";
+                    else
+                        localMod.Version = "暂存";
+                    result.Add(localMod);
+                }
             }
         }
 

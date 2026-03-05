@@ -8,6 +8,7 @@ x86/
 [Bb]in/
 [Oo]bj/
 PublishOutput/
+publish_output/
 
 # IDE files
 .vs/

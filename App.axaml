@@ -10,38 +10,49 @@
   
     <Application.Styles>
         <FluentTheme />
+        <!-- 全局移除 TextBox 聚焦时的蓝色边框与阴影 -->
+        <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeTextTertiaryBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+        <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+            <Setter Property="BorderBrush" Value="{DynamicResource ThemeTextSubBrush}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FocusAdorner" Value="{x:Null}" />
+            <Setter Property="SelectionBrush" Value="{DynamicResource SvgIconBrush}" />
+        </Style>
+
+        <!-- 修复滚动条残留线问题：激进清理方案 -->
+        <Style Selector="ScrollBar">
+            <Setter Property="UseLayoutRounding" Value="True" />
+            <Setter Property="Background" Value="#01000000" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Transitions" Value="{x:Null}" />
+        </Style>
+        <!-- 隐藏滚动条两端的箭头按钮 -->
+        <Style Selector="ScrollBar /template/ RepeatButton">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <!-- 简化滑块模板，避免复杂动画和边框产生的残留虚影 -->
+        <Style Selector="ScrollBar /template/ Thumb">
+            <Setter Property="Background" Value="{DynamicResource SvgIconBrush}" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Background="{TemplateBinding Background}" 
+                            CornerRadius="4" 
+                            Margin="2" 
+                            BorderThickness="0" />
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <!-- 全局强制裁剪 -->
+        <Style Selector="ScrollViewer">
+            <Setter Property="ClipToBounds" Value="True" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>
-        <!-- 全局复选框粉色覆盖 -->
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillChecked" Color="#d4237a"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPointerOver" Color="#e44b92"/>
-        <SolidColorBrush x:Key="CheckBoxCheckBackgroundFillCheckedPressed" Color="#bd1d6a"/>
-        
-        <!-- 全局滑动条粉色覆盖 -->
-        <SolidColorBrush x:Key="SliderTrackValueFill" Color="#d4237a" />
-        <SolidColorBrush x:Key="SliderTrackValueFillPointerOver" Color="#e44b92" />
-        <SolidColorBrush x:Key="SliderTrackValueFillPressed" Color="#bd1d6a" />
-        <SolidColorBrush x:Key="SliderThumbBackground" Color="#d4237a" />
-        <SolidColorBrush x:Key="SliderThumbBackgroundPointerOver" Color="#e44b92" />
-        <SolidColorBrush x:Key="SliderThumbBackgroundPressed" Color="#bd1d6a" />
-
-        <!-- 全局滚动条粉色覆盖 -->
-        <SolidColorBrush x:Key="ScrollBarThumbFill" Color="#d4237a" />
-        <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="#e44b92" />
-        <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="#bd1d6a" />
-        <SolidColorBrush x:Key="ScrollBarThumbBackground" Color="#d4237a" />
-        <SolidColorBrush x:Key="ScrollBarThumbBackgroundPointerOver" Color="#e44b92" />
-        <SolidColorBrush x:Key="ScrollBarThumbBackgroundPressed" Color="#bd1d6a" />
-
-        <!-- 全局动态背景画刷 (支持根据是否有自定义背景图动态切换) -->
-        <SolidColorBrush x:Key="CardBgBrush" Color="#242424" />
-        <SolidColorBrush x:Key="CardHoverBgBrush" Color="#2A2A2A" />
-        <SolidColorBrush x:Key="ModCardBgBrush" Color="#2D2D30" />
-        <SolidColorBrush x:Key="ControlBgBrush" Color="#2a2a2a" />
-        <SolidColorBrush x:Key="ControlHoverBgBrush" Color="#3a3a3a" />
-        <SolidColorBrush x:Key="ControlPressedBgBrush" Color="#4a4a4a" />
-
         <ColorPaletteResources x:Key="Dark" Accent="#d4237a" RegionColor="#1E1E1E" ErrorText="Red" />
     </Application.Resources>
 </Application>

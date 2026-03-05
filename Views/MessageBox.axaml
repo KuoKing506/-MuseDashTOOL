@@ -1,0 +1,37 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="MdModManager.Views.MessageBox"
+        Title="提示"
+        Width="400" Height="180"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        Foreground="White"
+        SystemDecorations="Full">
+
+    <Grid RowDefinitions="*, Auto" Margin="24">
+        <!-- 提示文本 -->
+        <TextBlock x:Name="MessageText"
+                   Grid.Row="0"
+                   Text="提示信息"
+                   TextWrapping="Wrap"
+                   FontSize="15"
+                   Foreground="#E0E0E0"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center"/>
+
+        <!-- 底部按钮区 -->
+        <Button Grid.Row="1"
+                Content="确定"
+                Width="100"
+                Height="32"
+                HorizontalAlignment="Center"
+                HorizontalContentAlignment="Center"
+                VerticalContentAlignment="Center"
+                Background="{DynamicResource ThemeAccentBrush}"
+                Foreground="White"
+                Click="OnConfirmClick"
+                Margin="0,16,0,0"/>
+    </Grid>
+</Window>

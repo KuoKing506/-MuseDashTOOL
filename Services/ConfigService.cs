@@ -9,6 +9,7 @@ namespace MdModManager.Services;
 public interface IConfigService
 {
     AppConfig Config { get; }
+    void Load();
     Task LoadAsync();
     Task SaveAsync();
 }
@@ -25,6 +26,30 @@ public class ConfigService : IConfigService
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         _configFolderPath = Path.Combine(appData, "MdModManager");
         _configFilePath = Path.Combine(_configFolderPath, "config.json");
+    }
+
+    public void Load()
+    {
+        try
+        {
+            if (File.Exists(_configFilePath))
+            {
+                var json = File.ReadAllText(_configFilePath);
+                var config = JsonSerializer.Deserialize(json, AppJsonContext.Default.AppConfig);
+                if (config != null)
+                {
+                    if (config.ModLinksUrl != null && config.ModLinksUrl.Contains("raw.githubusercontent.com/MDMods/MuseDashModLinks/main/ModLinks.json"))
+                    {
+                        config.ModLinksUrl = "https://gitee.com/lxymahatma/ModLinks/raw/dev/Mods.json";
+                    }
+                    Config = config;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load config: {ex}");
+        }
     }
 
     public async Task LoadAsync()

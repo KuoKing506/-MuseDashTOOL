@@ -4,16 +4,22 @@ using Avalonia.Data.Core;
 using Avalonia.Data.Core.Plugins;
 using System.Linq;
 using Avalonia.Markup.Xaml;
+using MdModManager.Services;
 using MdModManager.ViewModels;
 using MdModManager.Views;
 using Microsoft.Extensions.DependencyInjection;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using System;
+using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+
 
 namespace MdModManager;
 
 public partial class App : Application
 {
+
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -23,10 +29,22 @@ public partial class App : Application
     {
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
         ConfigureServices();
+        
+        // 软件启动时后台静默预获取账号与成绩数据
+        MuseDashAccountService.StartPrefetch();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            DisableAvaloniaDataAnnotationValidation();
+            var configService = Ioc.Default.GetService<IConfigService>();
+            if (configService != null)
+            {
+                configService.Load();
+            }
+            
+            // 异步检测更新
+            var updateService = Ioc.Default.GetService<IUpdateService>();
+            updateService?.CheckAndApplyUpdateAsync();
+
             desktop.MainWindow = new MainWindow
             {
                 DataContext = Ioc.Default.GetRequiredService<MainWindowViewModel>(),
@@ -43,12 +61,14 @@ public partial class App : Application
         // ViewModels
         services.AddTransient<MainWindowViewModel>();
         services.AddTransient<MelonLoaderViewModel>();
-        services.AddTransient<ModManagerViewModel>();
+        services.AddSingleton<ModManagerViewModel>();
+        services.AddTransient<TutorialViewModel>();
         services.AddTransient<SettingsViewModel>();
         services.AddTransient<ConfigManagerViewModel>();
         services.AddTransient<ChartManagerViewModel>();
-        services.AddTransient<ChartDownloadViewModel>();
+        services.AddSingleton<ChartDownloadViewModel>();
         services.AddTransient<DownloadManagerViewModel>();
+        services.AddTransient<AccountViewModel>();
 
         // Services (will be added here later)
         services.AddSingleton<MdModManager.Services.IConfigService, MdModManager.Services.ConfigService>();
@@ -61,6 +81,10 @@ public partial class App : Application
         services.AddSingleton<MdModManager.Services.IChartService, MdModManager.Services.ChartService>();
         services.AddSingleton<MdModManager.Services.IChartDownloadService, MdModManager.Services.ChartDownloadService>();
         services.AddSingleton<MdModManager.Services.IDownloadManagerService, MdModManager.Services.DownloadManagerService>();
+        services.AddSingleton<MdModManager.Services.INavigationService, MdModManager.Services.NavigationService>();
+        services.AddSingleton<MdModManager.Services.ModStagingService>();
+        services.AddSingleton<MdModManager.Services.IUpdateService, MdModManager.Services.UpdateService>();
+        services.AddSingleton<MdModManager.Services.IAnnouncementService, MdModManager.Services.AnnouncementService>();
 
         Ioc.Default.ConfigureServices(services.BuildServiceProvider());
     }

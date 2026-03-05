@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationDefinition>App.axaml</ApplicationDefinition>
+    <ApplicationDefinition>App.axaml</ApplicationDefinition>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <RootNamespace>MdModManager</RootNamespace>
     <AssemblyName>MuseDashTOOL</AssemblyName>
@@ -13,10 +15,12 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\**" Exclude="Assets\classdata.tpk" />
+    
     <EmbeddedResource Include="Assets\classdata.tpk" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="AsyncImageLoader.Avalonia" Version="3.7.0" />
     <PackageReference Include="Avalonia" Version="11.3.12" />
     <PackageReference Include="Avalonia.Desktop" Version="11.3.12" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.12" />
@@ -32,6 +36,10 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="NAudio" Version="2.2.1" />
     <PackageReference Include="NAudio.Vorbis" Version="1.5.0" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.Reactive" Version="6.1.0" />
   </ItemGroup>
 </Project>
+
+
+

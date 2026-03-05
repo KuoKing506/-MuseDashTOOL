@@ -130,7 +130,7 @@
 
                     <!-- 设置列表 -->
                     <Grid ColumnDefinitions="Auto, 20, *"
-                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+                          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
                           RowSpacing="15">
 
                         <!-- 1. 自动翻译 -->
@@ -142,84 +142,65 @@
                                   IsChecked="{Binding AutoTranslateDescriptions}"
                                   VerticalAlignment="Center"/>
 
-                        <!-- 1.5 以原版启动游戏 -->
-                        <TextBlock Grid.Row="1" Grid.Column="0"
-                                   Text="以原版启动游戏"
-                                   FontSize="18" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="1" Grid.Column="2"
-                                  IsChecked="{Binding IsOriginalModeEnabled}"
-                                  VerticalAlignment="Center"/>
-
-                        <!-- 1.6 隐藏控制台 -->
-                        <TextBlock Grid.Row="2" Grid.Column="0"
-                                   Text="启动游戏时隐藏控制台"
-                                   FontSize="18" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="2" Grid.Column="2"
-                                  IsChecked="{Binding HideConsoleOnLaunch}"
-                                  VerticalAlignment="Center"/>
-
                         <!-- 2. 不兼容 Mod 提醒 -->
-                        <TextBlock Grid.Row="3" Grid.Column="0"
+                        <TextBlock Grid.Row="1" Grid.Column="0"
                                    Text="下载不兼容 Mod 时不再提醒"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="3" Grid.Column="2"
+                        <CheckBox Grid.Row="1" Grid.Column="2"
                                   IsChecked="{Binding SuppressIncompatibleModWarning}"
                                   VerticalAlignment="Center"/>
 
                         <!-- 3. 删除确认弹窗 -->
-                        <TextBlock Grid.Row="4" Grid.Column="0"
+                        <TextBlock Grid.Row="2" Grid.Column="0"
                                    Text="删除时不再显示确认弹窗"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="4" Grid.Column="2"
+                        <CheckBox Grid.Row="2" Grid.Column="2"
                                   IsChecked="{Binding SuppressDeleteConfirmation}"
                                   VerticalAlignment="Center"/>
 
                         <!-- 4. 谱面名称滚动 -->
-                        <TextBlock Grid.Row="5" Grid.Column="0"
+                        <TextBlock Grid.Row="3" Grid.Column="0"
                                    Text="谱面名称过长时滚动显示"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="5" Grid.Column="2"
+                        <CheckBox Grid.Row="3" Grid.Column="2"
                                   IsChecked="{Binding EnableChartNameMarquee}"
                                   VerticalAlignment="Center"/>
 
                         <!-- 5. 启动游戏确认弹窗 -->
-                        <TextBlock Grid.Row="6" Grid.Column="0"
+                        <TextBlock Grid.Row="4" Grid.Column="0"
                                    Text="启动/重启游戏时不再显示确认弹窗"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <CheckBox Grid.Row="6" Grid.Column="2"
+                        <CheckBox Grid.Row="4" Grid.Column="2"
                                   IsChecked="{Binding SuppressLaunchGameConfirmation}"
                                   VerticalAlignment="Center"/>
 
                         <!-- 6. 下载源 -->
-                        <TextBlock Grid.Row="7" Grid.Column="0"
+                        <TextBlock Grid.Row="5" Grid.Column="0"
                                    Text="MelonLoader 下载源"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <ComboBox Grid.Row="7" Grid.Column="2"
+                        <ComboBox Grid.Row="5" Grid.Column="2"
                                   ItemsSource="{Binding DownloadSources}"
                                   SelectedItem="{Binding SelectedDownloadSource}"
-                                  Foreground="{DynamicResource ThemeTextMainBrush}"
                                   Width="180" HorizontalContentAlignment="Left"/>
 
                         <!-- 7. 谱面试听音量 -->
-                        <TextBlock Grid.Row="8" Grid.Column="0"
+                        <TextBlock Grid.Row="6" Grid.Column="0"
                                    Text="谱面试听音量"
                                    FontSize="18" VerticalAlignment="Center"
                                    Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                        <Slider Grid.Row="8" Grid.Column="2"
+                        <Slider Grid.Row="6" Grid.Column="2"
                                 Width="200" HorizontalAlignment="Left"
                                 Minimum="0" Maximum="1"
                                 Value="{Binding ChartPreviewVolume}"
                                 VerticalAlignment="Center"/>
                                 
                         <!-- 8. 调整界面样式 -->
-                        <Button Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="3"
+                        <Button Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
                                 Command="{Binding OpenColorPanelCommand}"
                                 Theme="{StaticResource RobustPlainIconBtn}"
                                 HorizontalAlignment="Left"
@@ -252,7 +233,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="4">
                             <!-- New SVG back arrow icon -->
                             <Path Data="M732.794579 1020.867765a58.608941 58.608941 0 0 1-41.803294-17.558589L247.478814 553.984a60.446118 60.446118 0 0 1 0-84.720941L690.991285 19.847529a58.578824 58.578824 0 0 1 83.606588 0 60.446118 60.446118 0 0 1 0 84.720942L372.979049 511.638588 774.597873 918.588235a60.446118 60.446118 0 0 1 0 84.720941 58.608941 58.608941 0 0 1-41.803294 17.558589z"
-                                  Fill="{DynamicResource SvgIconBrush}" Stretch="Uniform" Width="22" Height="22" VerticalAlignment="Center"/>
+                                  Fill="#d4237a" Stretch="Uniform" Width="22" Height="22" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
@@ -265,7 +246,7 @@
                                 Theme="{StaticResource SmallRoundBtn}"
                                 ToolTip.Tip="切换深色/浅色主题">
                             <PathIcon Data="{Binding ThemeToggleIconData}"
-                                      Foreground="{DynamicResource SvgIconBrush}" Width="18" Height="18" />
+                                      Foreground="#d4237a" Width="18" Height="18" />
                         </Button>
 
                         <Button Command="{Binding SelectBackgroundImageCommand}"
@@ -274,7 +255,7 @@
                                 PointerReleased="OnImportImagePointerReleased">
                             <StackPanel Orientation="Horizontal" Spacing="4">
                                 <PathIcon Data="M737.7 447.9c-51.9 0-95.9-44-95.9-95.9 0-52 44-96 95.9-96 52 0 96 44 96 96-0.1 51.9-44 95.9-96 95.9z m168-319.8c32 0 55.9 23.9 55.9 56v655.6c0 32-23.9 55.9-55.9 55.9H122c-32.1 0-56-24-56-55.9V184c0-32.1 23.9-56 56-56l783.7 0.1zM699.6 523.9l198 211.8V215.9c0-13.9-12-23.9-26.1-23.9H155.9c-14 0-24 10.1-26 23.9v519.8L381.8 432c8-8.1 20-16 34-16 13.9 0 25.9 4 34 14l108 118 8 7.8c6 4 13.9 8 22 8 8 0 16-4 23.9-10l36.1-32c7.9-6 15.9-10 25.9-10 10 0.1 20 4.1 25.9 12.1z"
-                                      Foreground="{DynamicResource SvgIconBrush}" Width="14" Height="14"/>
+                                      Foreground="#d4237a" Width="14" Height="14"/>
                                 <TextBlock Text="导入图片" Foreground="{DynamicResource ThemeTextMainBrush}" FontSize="13"/>
                             </StackPanel>
                         </Button>
@@ -455,7 +436,6 @@
                                         <DataTemplate>
                                             <TextBlock Text="{Binding}" 
                                                        FontFamily="{Binding Converter={StaticResource FontFamilyConverter}}"
-                                                       Foreground="{DynamicResource ThemeTextMainBrush}"
                                                        FontSize="14" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
@@ -475,7 +455,7 @@
                                         HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
                                     <PathIcon Data="M563.2 42.666667v640c0 23.466667-19.2 42.666667-42.666667 42.666666s-42.666667-19.2-42.666666-42.666666V42.666667c0-23.466667 19.2-42.666667 42.666666-42.666667s42.666667 19.2 42.666667 42.666667 M806.1952 457.275733L550.5792 712.900267a42.7776 42.7776 0 0 1-60.330667 0c-16.597333-16.605867-16.597333-43.776 0-60.330667l255.616-255.624533a42.7776 42.7776 0 0 1 60.330667 0 42.7776 42.7776 0 0 1 0 60.330666 M490.350933 712.8832L234.734933 457.275733a42.7776 42.7776 0 0 1 0-60.330666c16.597333-16.605867 43.776-16.605867 60.330667 0l255.616 255.616a42.7776 42.7776 0 0 1 0 60.330666 42.7776 42.7776 0 0 1-60.330667 0 M904.533333 1024H136.533333c-70.570667 0-128-57.429333-128-128V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666667 42.666667v256c0 23.552 19.114667 42.666667 42.666666 42.666667h768c23.552 0 42.666667-19.114667 42.666667-42.666667V640c0-23.594667 19.072-42.666667 42.666667-42.666667s42.666667 19.072 42.666666 42.666667v256c0 70.570667-57.429333 128-128 128" 
-                                              Foreground="{DynamicResource SvgIconBrush}" Width="20" Height="20"/>
+                                              Foreground="#d4237a" Width="20" Height="20"/>
                                 </Button>
                             </Grid>
                         </StackPanel>
@@ -503,31 +483,20 @@
                 <!-- ─── 分组：文本颜色 ─── -->
                 <Border Background="{DynamicResource CardBgBrush}" CornerRadius="8" Padding="15" Margin="0,0,0,10">
                     <StackPanel Orientation="Vertical" Spacing="10">
-                        <StackPanel Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
-                            <TextBlock Text="文本颜色"
-                                       FontWeight="SemiBold" 
-                                       Foreground="{DynamicResource ThemeTextMainBrush}"
-                                       VerticalAlignment="Center"/>
-                            <Button Command="{Binding OpenHexColorHelpCommand}"
-                                    Background="Transparent" BorderThickness="0" Padding="0"
-                                    Margin="5,2,0,0" VerticalAlignment="Bottom">
-                                <Button.Styles>
-                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </Style>
-                                </Button.Styles>
-                                <TextBlock Text="不知道什么是十六进制颜色？" 
-                                           FontSize="11" Opacity="0.6"
-                                           TextDecorations="Underline"
-                                           Foreground="{DynamicResource ThemeTextMainBrush}"/>
-                            </Button>
-                        </StackPanel>
+                        <TextBlock Text="文本颜色"
+                                   FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource ThemeTextMainBrush}"/>
                         <StackPanel Orientation="Horizontal" Spacing="10" MinHeight="30">
-                            <TextBlock Text="左侧栏按键颜色"
-                                       Foreground="{DynamicResource ThemeTextMainBrush}"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"/>
+                            <Button Command="{Binding ToggleCustomThemeColorInputCommand}"
+                                    Theme="{StaticResource SmallRoundBtn}"
+                                    VerticalAlignment="Center"
+                                    ToolTip.Tip="切换自定义文字颜色输入框">
+                                <TextBlock Text="左侧栏按键颜色"
+                                           Foreground="{DynamicResource ThemeTextMainBrush}"
+                                           FontSize="13"/>
+                            </Button>
                             <TextBox Text="{Binding CustomThemeTextColor}"
+                                     IsVisible="{Binding IsCustomColorInputVisible}"
                                      Watermark="#FFFFFF"
                                      Width="100" Height="30"
                                      Padding="8,0"
@@ -535,13 +504,18 @@
                                      VerticalContentAlignment="Center"
                                      FontSize="13"/>
 
-                            <Control Width="1" Margin="10,5"/>
+                            <Border Width="1" Background="{DynamicResource ThemeTextSubBrush}" Opacity="0.2" Margin="10,5"/>
 
-                            <TextBlock Text="右侧面板文本颜色"
-                                       Foreground="{DynamicResource ThemeTextMainBrush}"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"/>
+                            <Button Command="{Binding ToggleRightPanelColorInputCommand}"
+                                    Theme="{StaticResource SmallRoundBtn}"
+                                    VerticalAlignment="Center"
+                                    ToolTip.Tip="切换右侧面板文字颜色输入框">
+                                <TextBlock Text="右侧面板文本颜色"
+                                           Foreground="{DynamicResource ThemeTextMainBrush}"
+                                           FontSize="13"/>
+                            </Button>
                             <TextBox Text="{Binding RightPanelTextColor}"
+                                     IsVisible="{Binding IsRightPanelColorInputVisible}"
                                      Watermark="#FFFFFF"
                                      Width="100" Height="30"
                                      Padding="8,0"
@@ -549,53 +523,24 @@
                                      VerticalContentAlignment="Center"
                                      FontSize="13"/>
                                      
-                            <Control Width="1" Margin="10,5"/>
+                            <Border Width="1" Background="{DynamicResource ThemeTextSubBrush}" Opacity="0.2" Margin="10,5"/>
 
-                            <TextBlock Text="主题颜色"
-                                       Foreground="{DynamicResource ThemeTextMainBrush}"
-                                       VerticalAlignment="Center"
-                                       FontSize="13"/>
+                            <Button Command="{Binding ToggleThemeColorInputCommand}"
+                                    Theme="{StaticResource SmallRoundBtn}"
+                                    VerticalAlignment="Center"
+                                    ToolTip.Tip="切换主题颜色输入框">
+                                <TextBlock Text="主题颜色"
+                                           Foreground="{DynamicResource ThemeTextMainBrush}"
+                                           FontSize="13"/>
+                            </Button>
                             <TextBox Text="{Binding CustomThemeColor}"
+                                     IsVisible="{Binding IsThemeColorInputVisible}"
                                      Watermark="#d4237a"
                                      Width="100" Height="30"
                                      Padding="8,0"
                                      VerticalAlignment="Center"
                                      VerticalContentAlignment="Center"
                                      FontSize="13"/>
-
-                            <!-- 一键清除按键 -->
-                            <Button Command="{Binding ResetColorsCommand}"
-                                    Width="30" Height="30"
-                                    Margin="15,0,0,0"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="5"
-                                    ToolTip.Tip="一键重置所有自定义颜色">
-                                <Button.Styles>
-                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="Transparent" />
-                                    </Style>
-                                </Button.Styles>
-                                <PathIcon Data="M886.401 395.097h-251.7V80.614c0-22.091-19.899-40-44.447-40H439.148c-24.547 0-44.447 17.909-44.447 40v314.483h-251.7c-22.315 0-40.404 17.909-40.404 40v506.471c0 22.091 18.09 40 40.404 40h743.4c22.315 0 40.404-17.909 40.404-40V435.097c0.001-22.092-18.089-40-40.404-40z m-10.72 536.47h-127.98V831c0-17.673-12.088-32-27-32s-27 14.327-27 32v100.567h-152V792c0-14.912-12.088-27-27-27s-27 12.088-27 27v139.567h-152V831c0-17.673-12.088-32-27-32s-27 14.327-27 32v100.567H152.597V688.332h723.084v243.235z m0-293.235H152.597V445.097h291.882V90.614h137.819v354.483H875.68v193.235z" 
-                                          Foreground="{DynamicResource SvgIconBrush}"/>
-                            </Button>
-
-                            <!-- 一键撤回按键 -->
-                            <Button Command="{Binding UndoColorsCommand}"
-                                    Width="30" Height="30"
-                                    Margin="5,0,0,0"
-                                    Background="Transparent"
-                                    BorderThickness="0"
-                                    Padding="5"
-                                    ToolTip.Tip="撤回一键清除">
-                                <Button.Styles>
-                                    <Style Selector="Button:pointerover /template/ ContentPresenter">
-                                        <Setter Property="Background" Value="Transparent" />
-                                    </Style>
-                                </Button.Styles>
-                                <PathIcon Data="M704 352H173.4l137.3-137.4a32 32 0 0 0-45.2-45.2L73.9 360.9a32 32 0 0 0 0 45.8l191.4 191.9a32 32 0 1 0 45.3-45.3L173.3 416H704a192 192 0 0 1 0 384h-320a32 32 0 1 0 0 64h320a256 256 0 0 0 0-512z" 
-                                          Foreground="{DynamicResource SvgIconBrush}"/>
-                            </Button>
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -604,5 +549,27 @@
             </ScrollViewer>
         </Grid>
 
+        <!-- 作者签名：当 IsColorPanelVisible 为 false 时才显示 -->
+        <Button Theme="{StaticResource RobustPlainIconBtn}"
+                HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,15,15"
+                Command="{Binding OpenAuthorHomepageCommand}"
+                IsVisible="{Binding IsMainPanelVisible}"
+                ToolTip.Tip="在浏览器中打开作者 Bilibili 空间">
+            <TextBlock Text="Crafted By 其实我叫苏子沫"
+                       Padding="0,0,10,0"
+                       FontSize="18"
+                       VerticalAlignment="Center"
+                       FontFamily="Candara, Comic Sans MS, STXingkai, Microsoft YaHei, sans-serif"
+                       FontWeight="Bold"
+                       FontStyle="Italic"
+                       Opacity="0.9">
+                <TextBlock.Foreground>
+                    <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                        <GradientStop Color="#FF69B4" Offset="0"/>
+                        <GradientStop Color="#FF1493" Offset="1"/>
+                    </LinearGradientBrush>
+                </TextBlock.Foreground>
+            </TextBlock>
+        </Button>
     </Panel>
 </UserControl>

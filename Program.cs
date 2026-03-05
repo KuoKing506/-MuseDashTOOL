@@ -13,8 +13,12 @@ sealed class Program
 
     // Avalonia 配置，请勿删除；设计器也会使用此方法。
     public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    {
+        var builder = AppBuilder.Configure<App>()
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
+
+        return builder;
+    }
 }

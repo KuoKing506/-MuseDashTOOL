@@ -23,6 +23,14 @@ public partial class LocalMod : ObservableObject
     [ObservableProperty]
     private bool _isDisabled;
 
+    /// <summary>游戏运行中导入、暂存在 Mods_Staging 文件夹的 Mod（重启游戏后生效）</summary>
+    [ObservableProperty]
+    private bool _isStaged;
+
+    /// <summary>游戏运行中请求删除、将在游戏关闭后自动删除（UI 显示红色加粗名字）</summary>
+    [ObservableProperty]
+    private bool _isPendingDelete;
+
     [ObservableProperty]
     private bool _isExpanded;
 
@@ -223,4 +231,12 @@ public partial class LocalMod : ObservableObject
 
     /// <summary>本地列表中"有更新可用"的状态显示文本</summary>
     public string UpdateAvailableText => $"有更新可用：{RemoteVersionText}";
+
+    /// <summary>Mod 对应的配置文件路径 (UserData 目录下)</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasConfigFile))]
+    private string? _configFilePath;
+
+    /// <summary>是否存在配置文件</summary>
+    public bool HasConfigFile => !string.IsNullOrEmpty(ConfigFilePath);
 }

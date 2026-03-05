@@ -9,20 +9,33 @@
         x:DataType="vm:MainWindowViewModel"
         Title="喵斯兔"
         Icon="/Assets/MuseDashTOOL.ico"
-        Width="1000" Height="700"
-        Background="{Binding WindowBackground}"
+        Width="1280" Height="800"
+        Background="Transparent"
         TransparencyLevelHint="Transparent"
+        FontFamily="{Binding CurrentFontFamily}"
+        FontSize="{Binding CurrentFontSize}"
         WindowStartupLocation="CenterScreen"
-        ExtendClientAreaToDecorationsHint="True">
+        ExtendClientAreaToDecorationsHint="True"
+        UseLayoutRounding="True"
+        CanResize="False">
 
     <!-- 最外层 Panel，用于在窗口左下角叠加通知气泡及最底层背景图 -->
     <Panel>
-        <!-- 全局自定义背景图 -->
-        <Image Source="{Binding CustomBackgroundBitmap}" 
-               Opacity="{Binding CustomBackgroundOpacity}" 
-               Stretch="UniformToFill" 
-               IsHitTestVisible="False"
-               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+
+        <!-- 全局自定义背景图容器 -->
+        <Grid IsHitTestVisible="False" 
+              IsVisible="{Binding CustomBackgroundBitmap, Converter={x:Static ObjectConverters.IsNotNull}}"
+              Opacity="{Binding WindowOpacityValue}">
+            <Image Source="{Binding CustomBackgroundBitmap}" 
+                   Stretch="UniformToFill" 
+                   HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                <Image.Effect>
+                    <BlurEffect Radius="{Binding BackgroundBlurRadius}" />
+                </Image.Effect>
+            </Image>
+            <!-- 亮度调节遮罩层（黑色），透明度等于 1.0 - 明亮度 -->
+            <Border Background="Black" Opacity="{Binding CustomBackgroundDarkness}" />
+        </Grid>
 
         <Grid ColumnDefinitions="250, *">
             <!-- 左侧侧边栏，背景颜色由 ViewModel 动态控制 (当有背景图时透明，否则为深色) -->
@@ -32,7 +45,9 @@
                     <!-- Logo / Title -->
                     <!-- 将上边距增加 20 (字体高度)，使得"文字顶部"对齐右侧容器顶部(Margin=15) -->
                     <!-- 将下边距减小 20，总间距 (35+35)=70 保持与原版(30+40)一致，下方菜单不会位移 -->
-                    <Button Command="{Binding GenerateLogCommand}" Background="Transparent" BorderThickness="0" Padding="0" Margin="20,35,20,35">
+                    <Button Command="{Binding GenerateLogCommand}" 
+                            PointerPressed="OnTitlePointerPressed"
+                            Background="Transparent" BorderThickness="0" Padding="0" Margin="20,35,20,35">
                         <Button.Styles>
                             <Style Selector="Button:pointerover /template/ ContentPresenter">
                                 <Setter Property="Background" Value="Transparent" />
@@ -50,111 +65,222 @@
                                     </LinearGradientBrush>
                                 </TextBlock.Foreground>
                             </TextBlock>
-                            <TextBlock Text="Beta" FontSize="12" Foreground="White" Margin="5,0,0,2" VerticalAlignment="Bottom"/>
+                            <TextBlock Text="v1.0.0" FontSize="12" Foreground="White" Margin="5,0,0,2" VerticalAlignment="Bottom"/>
                         </StackPanel>
                     </Button>
                     
                     <!-- Main Navigation (Top) -->
-                    <StackPanel Grid.Row="1" Spacing="5" Margin="10,0">
+                    <StackPanel Grid.Row="1" Spacing="8" Margin="10,0">
                         <StackPanel.Styles>
                             <Style Selector="Button.NavBtn">
                                 <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextMainBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
                                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="FontSize" Value="15"/>
-                                <Setter Property="Padding" Value="15,12"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Padding" Value="15,0"/>
+                                <Setter Property="MinHeight" Value="46"/>
                                 <Setter Property="CornerRadius" Value="6"/>
+                                <Setter Property="RenderTransform" Value="translateX(0px) scale(1.0)"/>
+                                <Setter Property="Transitions">
+                                    <Transitions>
+                                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="SineEaseOut"/>
+                                    </Transitions>
+                                </Setter>
                             </Style>
                             <Style Selector="Button.NavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                <Setter Property="Background" Value="#2D2D30"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pointerover">
+                                <Setter Property="RenderTransform" Value="translateX(10px) scale(1.05)"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pressed">
+                                <Setter Property="RenderTransform" Value="translateX(0px) scale(0.95)"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:disabled">
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonMainBrush}"/>
+                                <Setter Property="Opacity" Value="1.0"/>
                             </Style>
                         </StackPanel.Styles>
                         
-                        <Button Classes="NavBtn" Content="Mod 管理" Command="{Binding NavigateToModManagerCommand}"/>
-                        <Button Classes="NavBtn" Content="谱面管理" Command="{Binding NavigateToChartManagerCommand}"/>
-                        <Button Classes="NavBtn" Content="谱面下载" Command="{Binding NavigateToChartDownloadCommand}"/>
-                        <Button Classes="NavBtn" Content="下载列表" Command="{Binding NavigateToDownloadManagerCommand}"/>
-                        <Button Classes="NavBtn" Content="配置文件" Command="{Binding NavigateToConfigManagerCommand}"/>
+                        <LayoutTransformControl>
+                            <LayoutTransformControl.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding FontScale}" ScaleY="{Binding FontScale}"/>
+                            </LayoutTransformControl.LayoutTransform>
+                            <StackPanel Spacing="8">
+                                <Button Classes="NavBtn" Command="{Binding NavigateToModManagerCommand}"><TextBlock Text="Mod管理" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToChartManagerCommand}"><TextBlock Text="谱面管理" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToChartDownloadCommand}"><TextBlock Text="谱面下载" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToDownloadManagerCommand}"><TextBlock Text="下载列表" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToConfigManagerCommand}"><TextBlock Text="配置文件" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToAccountCommand}"><TextBlock Text="我的账号" LetterSpacing="{Binding NavButtonLetterSpacing}"/></Button>
+                            </StackPanel>
+                        </LayoutTransformControl>
                     </StackPanel>
 
                     <!-- Footer Navigation (Bottom) -->
-                    <StackPanel Grid.Row="2" Spacing="5" Margin="10,0,10,20">
+                    <StackPanel Grid.Row="2" Spacing="8" Margin="10,0,10,20">
                         <StackPanel.Styles>
                             <Style Selector="Button.NavBtn">
                                 <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{DynamicResource ThemeTextSubBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
                                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Padding" Value="15,10"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="FontSize" Value="15"/>
+                                <Setter Property="Padding" Value="15,0"/>
+                                <Setter Property="MinHeight" Value="42"/>
                                 <Setter Property="CornerRadius" Value="6"/>
+                                <Setter Property="RenderTransform" Value="translateX(0px) scale(1.0)"/>
+                                <Setter Property="Transitions">
+                                    <Transitions>
+                                        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" Easing="SineEaseOut"/>
+                                    </Transitions>
+                                </Setter>
                             </Style>
                             <Style Selector="Button.NavBtn:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-                                <Setter Property="Background" Value="#2D2D30"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pointerover">
+                                <Setter Property="RenderTransform" Value="translateX(10px) scale(1.05)"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pressed /template/ ContentPresenter#PART_ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:pressed">
+                                <Setter Property="RenderTransform" Value="translateX(0px) scale(0.95)"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                            </Style>
+                            <Style Selector="Button.NavBtn:disabled">
+                                <Setter Property="Foreground" Value="{DynamicResource NavButtonSubBrush}"/>
+                                <Setter Property="Opacity" Value="1.0"/>
                             </Style>
                         </StackPanel.Styles>
                         
-                        <!-- 通知气泡区域：启动/重启游戏 按钮上方 -->
-                        <ItemsControl ItemsSource="{Binding Notifications}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="svc:DownloadNotification">
-                                    <Border Opacity="{Binding Opacity}"
-                                            Background="#2D2D30"
-                                            BorderBrush="#444"
-                                            BorderThickness="1"
-                                            CornerRadius="6"
-                                            Padding="10,6"
-                                            Margin="5,2">
-                                        <Panel>
-                                            <!-- 成功通知：绿色 -->
-                                            <TextBlock Text="{Binding Message}"
-                                                       FontSize="12"
-                                                       Foreground="#4EC94E"
-                                                       IsVisible="{Binding IsSuccess}"
-                                                       TextWrapping="Wrap"/>
-                                            <!-- 信息/欢迎通知：粉色 FF69B4 -->
-                                            <TextBlock Text="{Binding Message}"
-                                                       FontSize="12"
-                                                       Foreground="#FF69B4"
-                                                       IsVisible="{Binding IsInfo}"
-                                                       TextWrapping="Wrap"/>
-                                            <!-- 失败通知：橙色 (如果既不是成功也不是信息) -->
-                                            <TextBlock Text="{Binding Message}"
-                                                       FontSize="12"
-                                                       Foreground="#FF7043"
-                                                       IsVisible="{Binding !IsSuccess}"
-                                                       TextWrapping="Wrap">
-                                                <TextBlock.IsVisible>
-                                                    <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                                        <Binding Path="!IsSuccess"/>
-                                                        <Binding Path="!IsInfo"/>
-                                                    </MultiBinding>
-                                                </TextBlock.IsVisible>
-                                            </TextBlock>
-                                        </Panel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-
-                        <Button Classes="NavBtn" Content="启动/重启游戏" Command="{Binding LaunchGameCommand}"/>
-                        <Button Classes="NavBtn" Content="MelonLoader 管理" Command="{Binding NavigateToMelonLoaderCommand}"/>
-                        <Button Classes="NavBtn" Content="设置" Command="{Binding NavigateToSettingsCommand}"/>
-                        
-                        <Border Height="1" Background="#333333" Margin="10,10,10,5"/>
-                        <Button Classes="NavBtn" Content="选择游戏目录" Click="OnSelectGamePathClick"/>
+                        <!-- 启动/重启游戏按钮 + 暂存 Mod 提醒 -->
+                        <LayoutTransformControl>
+                            <LayoutTransformControl.LayoutTransform>
+                                <ScaleTransform ScaleX="{Binding FontScale}" ScaleY="{Binding FontScale}"/>
+                            </LayoutTransformControl.LayoutTransform>
+                            <StackPanel Spacing="8">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Button Grid.Column="0" Classes="NavBtn" Command="{Binding LaunchGameCommand}"><TextBlock Text="启动/重启游戏"/></Button>
+                                    <TextBlock Grid.Column="1"
+                                               Text="!!!"
+                                               IsVisible="{Binding HasStagedMods}"
+                                               Foreground="{DynamicResource ThemeTextMainBrush}"
+                                               FontWeight="Bold"
+                                               FontSize="14"
+                                               VerticalAlignment="Center"
+                                               Margin="4,0,8,0"
+                                               ToolTip.Tip="有 Mod 已暂存，将在游戏关闭后自动安装"/>
+                                </Grid>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToMelonLoaderCommand}"><TextBlock Text="MelonLoader 管理"/></Button>
+                                <Button Classes="NavBtn" Command="{Binding NavigateToSettingsCommand}"><TextBlock Text="设置"/></Button>
+                                
+                                <Border Height="1" Background="{DynamicResource ThemeTextSubBrush}" Opacity="0.2" Margin="10,10,10,5"/>
+                                <Button Classes="NavBtn" Click="OnSelectGamePathClick"><TextBlock Text="选择游戏目录"/></Button>
+                            </StackPanel>
+                        </LayoutTransformControl>
                     </StackPanel>
                 </Grid>
             </Border>
 
             <!-- Main Content -->
-            <!-- 加上顶部 35 的 Margin 以避免和右上角的系统最小化/关闭按钮重叠 -->
-            <!-- 内容区域的背景由 ViewModel 动态控制 -->
-            <Border Grid.Column="1" Background="{Binding ContentBackground}" Margin="0,35,15,15" CornerRadius="8">
-                <ContentControl Content="{Binding CurrentPage}" Margin="20"/>
+            <!-- 内容区域的背景由 ViewModel 动态控制，背景扩大以覆盖顶部无背景导致色差的问题 -->
+            <Border Grid.Column="1" Background="{Binding ContentBackground}">
+                <LayoutTransformControl Margin="20,55,35,35">
+                    <LayoutTransformControl.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding FontScale}" ScaleY="{Binding FontScale}"/>
+                    </LayoutTransformControl.LayoutTransform>
+                    <ContentControl Content="{Binding CurrentPage}"/>
+                </LayoutTransformControl>
+            </Border>
+        </Grid>
+
+        <!-- 全局公告弹窗遮罩 -->
+        <Grid IsVisible="{Binding IsAnnouncementVisible}" Background="#AA000000">
+            <Border Width="450" VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Background="#2A2A2A" CornerRadius="12" Padding="25"
+                    BoxShadow="0 10 30 0 #50000000">
+                <StackPanel Spacing="20">
+                    <!-- 标题：粉色渐变 -->
+                    <TextBlock Text="{Binding CurrentAnnouncement.Title}"
+                               FontSize="28" FontWeight="Bold" HorizontalAlignment="Center">
+                        <TextBlock.Foreground>
+                            <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                                <GradientStop Color="#FF69B4" Offset="0"/>
+                                <GradientStop Color="#d4237a" Offset="1"/>
+                            </LinearGradientBrush>
+                        </TextBlock.Foreground>
+                    </TextBlock>
+
+                    <!-- 内容：从 NoticeInfo 获取 -->
+                    <ScrollViewer MaxHeight="300">
+                        <TextBlock Text="{Binding CurrentAnnouncement.Content}"
+                                   TextWrapping="Wrap" LineHeight="24" FontSize="14"
+                                   Foreground="{DynamicResource ThemeTextMainBrush}"
+                                   Opacity="0.9"/>
+                    </ScrollViewer>
+
+                    <Separator Background="{DynamicResource ThemeTextSubBrush}" Opacity="0.1"/>
+
+                    <!-- 底部操作栏 -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <CheckBox Grid.Column="0" 
+                                  IsChecked="False"
+                                  Command="{Binding SuppressAndCloseAnnouncementCommand}"
+                                  Content="{Binding CurrentAnnouncement.CancelButtonText}"
+                                  FontSize="13" Foreground="#A0A0A0">
+                            <CheckBox.Styles>
+                                <Style Selector="CheckBox /template/ Border#NormalRectangle">
+                                    <Setter Property="BorderBrush" Value="#d4237a"/>
+                                </Style>
+                                <Style Selector="CheckBox:checked /template/ Border#NormalRectangle">
+                                    <Setter Property="Background" Value="#d4237a"/>
+                                    <Setter Property="BorderBrush" Value="#d4237a"/>
+                                </Style>
+                            </CheckBox.Styles>
+                        </CheckBox>
+                        
+                        <Button Grid.Column="1" 
+                                Command="{Binding CloseAnnouncementCommand}"
+                                Width="140" Height="42"
+                                CornerRadius="21"
+                                Background="#d4237a"
+                                Foreground="White">
+                            <Button.Styles>
+                                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                                    <Setter Property="Background" Value="#FF69B4"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                </Style>
+                            </Button.Styles>
+                            <TextBlock Text="{Binding CurrentAnnouncement.ActionButtonText}" 
+                                       FontWeight="Bold" FontSize="15"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
             </Border>
         </Grid>
     </Panel>

@@ -40,10 +40,71 @@ public class AppConfig
 
     /// <summary>隐藏模式下自定义的主题文字颜色 (为空时代表使用默认颜色)</summary>
     public string CustomThemeTextColor { get; set; } = "";
+
+    /// <summary>自定义主色调 (为空时代表使用默认颜色)</summary>
+    public string CustomThemeColor { get; set; } = "";
+
+    /// <summary>主面板文本颜色 (为空时代表使用默认颜色)</summary>
+    public string RightPanelTextColor { get; set; } = "";
+
+    /// <summary>左侧按键字体横向间隔</summary>
+    public double NavButtonLetterSpacing { get; set; } = 0.0;
+
+    /// <summary>背景模糊程度</summary>
+    public double BackgroundBlurRadius { get; set; } = 0.0;
+
+    /// <summary>窗口透明效果: None / AcrylicBlur / Transparent</summary>
+    public string WindowTransparencyMode { get; set; } = "None";
+
+    /// <summary>应用主题: Dark / Light</summary>
+    public string AppTheme { get; set; } = "Dark";
+
+    /// <summary>窗口整体透明度 (0.1 ~ 1.0)</summary>
+    public double WindowOpacity { get; set; } = 1.0;
+
+    /// <summary>自定义字体名称（为空时使用默认字体）</summary>
+    public string CustomFontFamily { get; set; } = "";
+
+    /// <summary>自定义字体大小</summary>
+    public double CustomFontSize { get; set; } = 14.0;
+
+    /// <summary>以原版启动游戏（禁用 MelonLoader）</summary>
+    public bool IsOriginalModeEnabled { get; set; } = false;
+
+    /// <summary>启动游戏时隐藏控制台</summary>
+    public bool HideConsoleOnLaunch { get; set; } = false;
+
+    /// <summary>是否为第一次启动 (显示新手教程)</summary>
+    public bool IsFirstLaunch { get; set; } = true;
+
+    /// <summary>已屏蔽（不再显示）的公告 ID 列表</summary>
+    public System.Collections.Generic.List<string> SuppressedAnnouncements { get; set; } = new();
+}
+
+public class NoticeInfo
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = "";
+
+    [JsonPropertyName("is_enabled")]
+    public bool IsEnabled { get; set; } = false;
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = "";
+
+    [JsonPropertyName("content")]
+    public string Content { get; set; } = "";
+
+    [JsonPropertyName("action_button_text")]
+    public string ActionButtonText { get; set; } = "进入新版喵斯兔";
+
+    [JsonPropertyName("cancel_button_text")]
+    public string CancelButtonText { get; set; } = "不再显示该弹窗";
 }
 
 [JsonSerializable(typeof(AppConfig))]
 [JsonSerializable(typeof(ModLinks))]
 [JsonSerializable(typeof(ModInfo[]))]
 [JsonSerializable(typeof(GitHubRelease[]))]
+[JsonSerializable(typeof(NoticeInfo))]
 internal partial class AppJsonContext : JsonSerializerContext { }
